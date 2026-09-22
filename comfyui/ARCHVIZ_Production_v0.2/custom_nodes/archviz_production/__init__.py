@@ -198,7 +198,7 @@ class Upscale:
         return {'required': {
             'state': ('AP_STATE',), 'control': ('AP_CONTROL',),
             'scale': ('FLOAT', {'default': 2., 'min': 1., 'max': 4.}),
-            'upscale_model': (['RealESRGAN_x4plus.safetensors']+model_names('upscale_models', 'RealESRGAN_x4plus.safetensors'),),
+            'upscale_model': (['Lanczos (no model)']+model_names('upscale_models', 'RealESRGAN_x4plus.safetensors'),),
             'protect_mask': ('STRING', {'default': ''}),
             'prompt': ('STRING', {'default': 'photorealistic architectural photograph, fine natural material detail, preserve architecture', 'multiline': True}),
             'negative': ('STRING', {'default': 'new windows, changed geometry, oversharpening, artifacts', 'multiline': True}),
