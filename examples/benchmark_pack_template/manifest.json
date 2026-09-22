@@ -1,0 +1,134 @@
+{
+  "schema_version": "0.1",
+  "dataset_id": "ARCHVIZ_QC_PACK_001",
+  "cases": [
+    {
+      "case_id": "identity_01::dev",
+      "category": "identity",
+      "reference_path": "images/before.png",
+      "after_path": "images/before.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "identity_02::eval",
+      "category": "identity",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/before_eval.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "appearance_01::dev",
+      "category": "appearance_change",
+      "reference_path": "images/before.png",
+      "after_path": "images/material_only.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "appearance_02::eval",
+      "category": "appearance_change",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/material_only_eval.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "daynight_01::dev",
+      "category": "day_night",
+      "reference_path": "images/before.png",
+      "after_path": "images/night.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "daynight_02::eval",
+      "category": "day_night",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/night_eval.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "repeat_01::dev",
+      "category": "repetitive_facade",
+      "reference_path": "images/repeating_before.png",
+      "after_path": "images/repeating_after.png",
+      "region_gt_path": "gt/repeating_01.json",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "repeat_02::eval",
+      "category": "repetitive_facade",
+      "reference_path": "images/repeating_before_eval.png",
+      "after_path": "images/repeating_after_eval.png",
+      "region_gt_path": "gt/repeating_02.json",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "occlusion_01::dev",
+      "category": "occlusion",
+      "reference_path": "images/before.png",
+      "after_path": "images/occlusion.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "occlusion_02::eval",
+      "category": "occlusion",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/occlusion_eval.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "sparse_01::dev",
+      "category": "sparse_facade",
+      "reference_path": "images/sparse_before.png",
+      "after_path": "images/sparse_after.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "sparse_02::eval",
+      "category": "sparse_facade",
+      "reference_path": "images/sparse_before_eval.png",
+      "after_path": "images/sparse_after_eval.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "technical_01::dev",
+      "category": "technical_transform",
+      "reference_path": "images/before.png",
+      "after_path": "images/translated.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "technical_02::eval",
+      "category": "technical_transform",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/translated_eval.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "camera_01::dev",
+      "category": "camera_mismatch",
+      "reference_path": "images/before.png",
+      "after_path": "images/camera_changed.png",
+      "expected_geometry_change": null
+    },
+    {
+      "case_id": "camera_02::eval",
+      "category": "camera_mismatch",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/camera_changed_eval.png",
+      "expected_geometry_change": null
+    },
+    {
+      "case_id": "geometry_01::dev",
+      "category": "geometry_change",
+      "reference_path": "images/before.png",
+      "after_path": "images/window_shifted.png",
+      "expected_geometry_change": true
+    },
+    {
+      "case_id": "geometry_02::eval",
+      "category": "geometry_change",
+      "reference_path": "images/before_eval.png",
+      "after_path": "images/window_shifted_eval.png",
+      "expected_geometry_change": true
+    }
+  ]
+}
