@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lutiy-dev/ARCHVIZ-Geometry-Guardian/schemas/reference_passport.schema.json",
+  "title": "ARCHVIZ Geometry Guardian Reference Passport",
+  "type": "object",
+  "required": [
+    "passport_id",
+    "reference_image_id",
+    "image_width",
+    "image_height",
+    "elements",
+    "capabilities",
+    "limitations"
+  ],
+  "properties": {
+    "passport_id": {"type": "string", "minLength": 1},
+    "reference_image_id": {"type": "string", "minLength": 1},
+    "image_width": {"type": "integer", "minimum": 1},
+    "image_height": {"type": "integer", "minimum": 1},
+    "elements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/referenceElement"}
+    },
+    "facade_regions": {"type": "object"},
+    "exclusions": {"type": "array"},
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["available", "limited", "unavailable"]
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "metadata": {"type": "object"}
+  },
+  "$defs": {
+    "propertyEvidence": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": {},
+        "source": {"type": "string"},
+        "verification": {
+          "enum": [
+            "verified",
+            "human_verified",
+            "partially_verified",
+            "unverified",
+            "conflict"
+          ]
+        },
+        "metadata": {"type": "object"}
+      },
+      "required": ["value", "source", "verification"]
+    },
+    "referenceElement": {
+      "type": "object",
+      "required": ["element_id", "element_type"],
+      "properties": {
+        "element_id": {"type": "string", "minLength": 1},
+        "element_type": {"type": "string", "minLength": 1},
+        "facade_id": {"type": ["string", "null"]},
+        "identity": {"$ref": "#/$defs/propertyEvidence"},
+        "reference_outline": {"$ref": "#/$defs/propertyEvidence"},
+        "expected_projection": {"$ref": "#/$defs/propertyEvidence"},
+        "bbox_xyxy": {"$ref": "#/$defs/propertyEvidence"},
+        "neighbors": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "tags": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  }
+}
