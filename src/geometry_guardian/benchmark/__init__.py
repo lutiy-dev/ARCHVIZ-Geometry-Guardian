@@ -12,6 +12,12 @@ from .manifest import (
     load_benchmark_manifest,
     missing_required_categories,
 )
+from .prepare import (
+    ALL_CATEGORIES,
+    PRESERVATION_CATEGORIES,
+    BenchmarkPackLayout,
+    initialize_benchmark_pack,
+)
 from .provider_metrics import (
     ProviderBenchmarkResult,
     benchmark_correspondence_set,
@@ -47,6 +53,10 @@ __all__ = [
     "REQUIRED_CATEGORIES",
     "load_benchmark_manifest",
     "missing_required_categories",
+    "ALL_CATEGORIES",
+    "PRESERVATION_CATEGORIES",
+    "BenchmarkPackLayout",
+    "initialize_benchmark_pack",
     "ProviderBenchmarkResult",
     "benchmark_correspondence_set",
     "BenchmarkReadinessReport",
