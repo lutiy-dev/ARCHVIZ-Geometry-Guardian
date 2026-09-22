@@ -222,7 +222,7 @@ class Upscale:
                  checkpoint=control['checkpoint'], seed=(control['seed']+4001) % (2**64))
         if p['upscale_mode'] == 'GENERATIVE':
             p['checkpoint_identity'] = model_identity('checkpoints', p['checkpoint'])
-        elif p['upscale_model'] != 'RealESRGAN_x4plus.safetensors':
+        elif p['upscale_model'] != 'Lanczos (no model)':
             p['upscale_model_identity'] = model_identity('upscale_models', p['upscale_model'])
         s = store_for(state['project'])
         try:
