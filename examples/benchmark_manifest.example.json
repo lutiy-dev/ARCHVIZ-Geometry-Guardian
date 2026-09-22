@@ -1,0 +1,69 @@
+{
+  "schema_version": "0.1",
+  "cases": [
+    {
+      "case_id": "identity_001",
+      "category": "identity",
+      "reference_path": "images/before.png",
+      "after_path": "images/before.png",
+      "expected_geometry_change": false,
+      "notes": "Same file control."
+    },
+    {
+      "case_id": "appearance_001",
+      "category": "appearance_change",
+      "reference_path": "images/before.png",
+      "after_path": "images/material_only.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "night_001",
+      "category": "day_night",
+      "reference_path": "images/before.png",
+      "after_path": "images/night.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "repeat_001",
+      "category": "repetitive_facade",
+      "reference_path": "images/repeating_before.png",
+      "after_path": "images/repeating_after.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "occlusion_001",
+      "category": "occlusion",
+      "reference_path": "images/before.png",
+      "after_path": "images/vegetation_occlusion.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "sparse_001",
+      "category": "sparse_facade",
+      "reference_path": "images/sparse_before.png",
+      "after_path": "images/sparse_after.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "technical_001",
+      "category": "technical_transform",
+      "reference_path": "images/before.png",
+      "after_path": "images/translated.png",
+      "expected_geometry_change": false
+    },
+    {
+      "case_id": "camera_001",
+      "category": "camera_mismatch",
+      "reference_path": "images/before.png",
+      "after_path": "images/camera_changed.png",
+      "expected_geometry_change": null
+    },
+    {
+      "case_id": "geometry_001",
+      "category": "geometry_change",
+      "reference_path": "images/before.png",
+      "after_path": "images/window_shifted.png",
+      "expected_geometry_change": true
+    }
+  ]
+}
