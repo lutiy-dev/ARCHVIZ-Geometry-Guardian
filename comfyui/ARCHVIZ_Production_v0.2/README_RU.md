@@ -13,7 +13,7 @@
 - `workflows/ARCHVIZ_Production_v02.json` — открывать в интерфейсе ComfyUI.
 - `workflows/ARCHVIZ_Production_v02_API.json` — для программного выполнения; виртуальной панели rgthree в API нет.
 - `custom_nodes/archviz_production/` — шесть новых типов нод. Обычные ноды не обеспечивают весь контракт, поэтому JSON требует этот пакет.
-- `input/archviz_demo_v02/` — синтетическая техническая картинка и маски. **Это не образец качества AI.**
+- `input/archviz_demo_v02/` — синтетическая техническая картинка и маски для smoke test. Если бинарных demo-файлов нет в checkout, `install_lab.py` автоматически создаёт их через `generate_demo_assets.py`. **Это не образец качества AI.**
 - `install_lab.py` — добавляет только эти новые файлы в LAB. Совпадающие файлы пропускает, несовпадающие не перезаписывает.
 
 Целевой LAB: `C:\ComfyUI-Installs\ARCHVIZ_LAB\ComfyUI`.
@@ -87,14 +87,21 @@ People использует erase_region=true, чтобы дать модели 
 
 24 шага, CFG 5, DPM++ 2M / Karras, crop до 1024 px, контекст 96 px. Это стартовые значения, не результат конкурса моделей и не обещание качества.
 
-- Checkpoint: `RealVisXL_V4.0.safetensors`.
-- ControlNet: `diffusers_xl_canny_full.safetensors`.
+- Checkpoint по умолчанию: `epicrealismXL_pureFix.safetensors` — используется уже подтверждённая локальная SDXL-модель.
+- ControlNet по умолчанию: `xinsirControlnetCanny_v20.safetensors` — используется уже подтверждённый локальный SDXL Canny ControlNet.
+- Для первого Conservative Upscale отдельный вес не обязателен: default = `Lanczos (no model)`.
 - Canny берётся из неизменяемого ORIGINAL, а не из накопленного результата.
 - Conservative upscale: RealESRGAN x4plus или Lanczos; результат приводится к выбранному scale (по умолчанию ×2).
 - Generative upscale: SDXL по перекрывающимся тайлам, мягкое объединение, denoise 0.12, detail_blend 0.5. В этом режиме поле upscale_model не используется.
 - В Upscale PROTECT сохраняет пиксели **увеличенной Lanczos-базы**. Побитовое сравнение с меньшим исходником после изменения разрешения не имеет смысла.
 
 API, SeedVR2, Qwen/Klein и автоматический выбор backend в этой версии не подключены. Они могут добавляться к тому же контракту после отдельного тестирования. Checkpoint dropdown предназначен для совместимых SDXL-моделей; другие архитектуры не взаимозаменяемы с этим backend.
+
+### Нужно ли скачивать модели
+
+Нет обязательного нового набора моделей специально для ARCHVIZ Production v0.2. Граф приведён к уже подтверждённой локальной библиотеке: `epicrealismXL_pureFix.safetensors` + `xinsirControlnetCanny_v20.safetensors`. Они могут физически лежать на внешнем/общем диске: важно только, чтобы ARCHVIZ_LAB видел их через текущий `extra_model_paths.yaml` / model paths.
+
+Если эти файлы уже есть и видны в dropdown ComfyUI, скачивать их повторно не нужно. Дополнительные модели рассматриваются позже только как кандидаты benchmark, а не как prerequisite установки v0.2.
 
 ## QC: что проверяется автоматически
 
