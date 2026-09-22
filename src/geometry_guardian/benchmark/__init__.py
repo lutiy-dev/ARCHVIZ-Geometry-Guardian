@@ -7,6 +7,13 @@ from .provider_metrics import (
     ProviderBenchmarkResult,
     benchmark_correspondence_set,
 )
+from .regions import (
+    PairRegionGroundTruth,
+    RegionPolygon,
+    assign_region_ground_truth,
+    load_pair_region_ground_truth,
+    region_at_point,
+)
 from .report import write_json_report
 from .runtime import (
     BenchmarkCase,
@@ -20,6 +27,11 @@ __all__ = [
     "missing_required_categories",
     "ProviderBenchmarkResult",
     "benchmark_correspondence_set",
+    "PairRegionGroundTruth",
+    "RegionPolygon",
+    "assign_region_ground_truth",
+    "load_pair_region_ground_truth",
+    "region_at_point",
     "write_json_report",
     "BenchmarkCase",
     "RuntimeBenchmarkResult",
