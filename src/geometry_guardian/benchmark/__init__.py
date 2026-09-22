@@ -1,3 +1,12 @@
+from .dataset import (
+    BenchmarkDatasetLock,
+    DatasetFileFingerprint,
+    collect_dataset_files,
+    create_dataset_lock,
+    sha256_file,
+    verify_dataset_lock,
+    write_dataset_lock,
+)
 from .manifest import (
     REQUIRED_CATEGORIES,
     load_benchmark_manifest,
@@ -20,8 +29,16 @@ from .runtime import (
     RuntimeBenchmarkResult,
     run_benchmark_case,
 )
+from .splits import BenchmarkSplit, split_cases_by_tag, validate_frozen_split
 
 __all__ = [
+    "BenchmarkDatasetLock",
+    "DatasetFileFingerprint",
+    "collect_dataset_files",
+    "create_dataset_lock",
+    "sha256_file",
+    "verify_dataset_lock",
+    "write_dataset_lock",
     "REQUIRED_CATEGORIES",
     "load_benchmark_manifest",
     "missing_required_categories",
@@ -36,4 +53,7 @@ __all__ = [
     "BenchmarkCase",
     "RuntimeBenchmarkResult",
     "run_benchmark_case",
+    "BenchmarkSplit",
+    "split_cases_by_tag",
+    "validate_frozen_split",
 ]
