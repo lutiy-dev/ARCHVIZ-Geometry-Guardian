@@ -55,6 +55,17 @@ from .runtime import (
     run_benchmark_case,
 )
 from .splits import BenchmarkSplit, split_cases_by_tag, validate_frozen_split
+from .variants import (
+    DEFAULT_ARCHITECTURE_INVARIANTS,
+    ControlledVariantSpec,
+    GeometryExpectation,
+    VariantChangeType,
+    VariantValidationResult,
+    load_variant_registry,
+    registry_case_ids,
+    validate_variant_registry,
+    validate_variant_spec,
+)
 
 __all__ = [
     "BenchmarkDatasetLock",
@@ -98,4 +109,13 @@ __all__ = [
     "BenchmarkSplit",
     "split_cases_by_tag",
     "validate_frozen_split",
+    "DEFAULT_ARCHITECTURE_INVARIANTS",
+    "ControlledVariantSpec",
+    "GeometryExpectation",
+    "VariantChangeType",
+    "VariantValidationResult",
+    "load_variant_registry",
+    "registry_case_ids",
+    "validate_variant_registry",
+    "validate_variant_spec",
 ]

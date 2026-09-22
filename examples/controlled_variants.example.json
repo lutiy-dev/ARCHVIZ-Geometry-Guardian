@@ -1,0 +1,85 @@
+{
+  "schema_version": "0.1",
+  "variants": [
+    {
+      "variant_id": "identity_01::dev",
+      "category": "identity",
+      "reference_image": "images/before.png",
+      "after_image": "images/before.png",
+      "geometry_expectation": "preserved",
+      "changed_properties": ["none"],
+      "invariant_properties": [
+        "camera_pose",
+        "projection",
+        "building_silhouette",
+        "facade_grid",
+        "major_openings"
+      ],
+      "controlled_change_description": "Pixel-identical control.",
+      "creation_method": "same source file"
+    },
+    {
+      "variant_id": "daynight_01::dev",
+      "category": "day_night",
+      "reference_image": "images/before.png",
+      "after_image": "images/night.png",
+      "geometry_expectation": "preserved",
+      "changed_properties": ["lighting", "day_night"],
+      "invariant_properties": [
+        "camera_pose",
+        "projection",
+        "building_silhouette",
+        "facade_grid",
+        "major_openings"
+      ],
+      "controlled_change_description": "Day-to-night relighting only. Architecture must remain unchanged.",
+      "creation_method": "controlled relight / AI appearance edit"
+    },
+    {
+      "variant_id": "occlusion_01::dev",
+      "category": "occlusion",
+      "reference_image": "images/before.png",
+      "after_image": "images/occlusion.png",
+      "geometry_expectation": "preserved",
+      "changed_properties": ["occlusion"],
+      "invariant_properties": [
+        "camera_pose",
+        "projection",
+        "building_silhouette",
+        "facade_grid",
+        "major_openings"
+      ],
+      "controlled_change_description": "Vegetation added in front of selected openings without architecture edits.",
+      "creation_method": "controlled compositing",
+      "exclusion_region_ids": ["OCC001"]
+    },
+    {
+      "variant_id": "geometry_01::dev",
+      "category": "geometry_change",
+      "reference_image": "images/before.png",
+      "after_image": "images/window_shifted.png",
+      "geometry_expectation": "changed",
+      "changed_properties": ["geometry"],
+      "invariant_properties": [
+        "camera_pose",
+        "projection"
+      ],
+      "controlled_change_description": "W017 moved 20 px to the right; all other architecture unchanged.",
+      "creation_method": "controlled synthetic edit",
+      "known_changed_element_ids": ["W017"]
+    },
+    {
+      "variant_id": "camera_01::dev",
+      "category": "camera_mismatch",
+      "reference_image": "images/before.png",
+      "after_image": "images/camera_changed.png",
+      "geometry_expectation": "unknown",
+      "changed_properties": ["camera"],
+      "invariant_properties": [
+        "building_model_version"
+      ],
+      "controlled_change_description": "Camera moved while source building geometry stayed unchanged.",
+      "creation_method": "rerender from moved camera"
+    }
+  ]
+}
