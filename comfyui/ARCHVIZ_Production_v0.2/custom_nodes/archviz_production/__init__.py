@@ -75,8 +75,8 @@ class Master:
             'reviewed': ('BOOLEAN', {'default': False}),
             'review_note': ('STRING', {'default': '', 'multiline': True}),
             'run_nonce': ('INT', {'default': 1, 'min': 1, 'max': 2147483647}),
-            'checkpoint': (model_names('checkpoints', 'epicrealismXL_pureFix.safetensors'),
-                           {'default': 'epicrealismXL_pureFix.safetensors'}),
+            'checkpoint': (model_names('checkpoints', 'RealVisXL_V4.0.safetensors'),
+                           {'default': 'RealVisXL_V4.0.safetensors'}),
             'seed': ('INT', {'default': 42001, 'min': 0, 'max': 0xffffffffffffffff}),
         }
         for stage in STAGES:
@@ -155,8 +155,8 @@ class LocalPass:
             'denoise': ('FLOAT', {'default': .24, 'min': .01, 'max': 1.}),
             'max_side': ('INT', {'default': 1024, 'min': 64, 'max': 2048, 'step': 8}),
             'context_pixels': ('INT', {'default': 96, 'min': 0, 'max': 512}),
-            'controlnet': (model_names('controlnet', 'xinsirControlnetCanny_v20.safetensors'),
-                           {'default': 'xinsirControlnetCanny_v20.safetensors'}),
+            'controlnet': (model_names('controlnet', 'diffusers_xl_canny_full.safetensors'),
+                           {'default': 'diffusers_xl_canny_full.safetensors'}),
             'control_strength': ('FLOAT', {'default': .65, 'min': 0., 'max': 2.}),
             'erase_region': ('BOOLEAN', {'default': False}),
         }}
@@ -198,7 +198,7 @@ class Upscale:
         return {'required': {
             'state': ('AP_STATE',), 'control': ('AP_CONTROL',),
             'scale': ('FLOAT', {'default': 2., 'min': 1., 'max': 4.}),
-            'upscale_model': (['Lanczos (no model)']+model_names('upscale_models', 'Lanczos (no model)'),),
+            'upscale_model': (['RealESRGAN_x4plus.safetensors']+model_names('upscale_models', 'RealESRGAN_x4plus.safetensors'),),
             'protect_mask': ('STRING', {'default': ''}),
             'prompt': ('STRING', {'default': 'photorealistic architectural photograph, fine natural material detail, preserve architecture', 'multiline': True}),
             'negative': ('STRING', {'default': 'new windows, changed geometry, oversharpening, artifacts', 'multiline': True}),
@@ -222,7 +222,7 @@ class Upscale:
                  checkpoint=control['checkpoint'], seed=(control['seed']+4001) % (2**64))
         if p['upscale_mode'] == 'GENERATIVE':
             p['checkpoint_identity'] = model_identity('checkpoints', p['checkpoint'])
-        elif p['upscale_model'] != 'Lanczos (no model)':
+        elif p['upscale_model'] != 'RealESRGAN_x4plus.safetensors':
             p['upscale_model_identity'] = model_identity('upscale_models', p['upscale_model'])
         s = store_for(state['project'])
         try:
