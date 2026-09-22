@@ -75,8 +75,8 @@ class Master:
             'reviewed': ('BOOLEAN', {'default': False}),
             'review_note': ('STRING', {'default': '', 'multiline': True}),
             'run_nonce': ('INT', {'default': 1, 'min': 1, 'max': 2147483647}),
-            'checkpoint': (model_names('checkpoints', 'RealVisXL_V4.0.safetensors'),
-                           {'default': 'RealVisXL_V4.0.safetensors'}),
+            'checkpoint': (model_names('checkpoints', 'epicrealismXL_pureFix.safetensors'),
+                           {'default': 'epicrealismXL_pureFix.safetensors'}),
             'seed': ('INT', {'default': 42001, 'min': 0, 'max': 0xffffffffffffffff}),
         }
         for stage in STAGES:
@@ -155,8 +155,8 @@ class LocalPass:
             'denoise': ('FLOAT', {'default': .24, 'min': .01, 'max': 1.}),
             'max_side': ('INT', {'default': 1024, 'min': 64, 'max': 2048, 'step': 8}),
             'context_pixels': ('INT', {'default': 96, 'min': 0, 'max': 512}),
-            'controlnet': (model_names('controlnet', 'diffusers_xl_canny_full.safetensors'),
-                           {'default': 'diffusers_xl_canny_full.safetensors'}),
+            'controlnet': (model_names('controlnet', 'xinsirControlnetCanny_v20.safetensors'),
+                           {'default': 'xinsirControlnetCanny_v20.safetensors'}),
             'control_strength': ('FLOAT', {'default': .65, 'min': 0., 'max': 2.}),
             'erase_region': ('BOOLEAN', {'default': False}),
         }}
@@ -198,7 +198,7 @@ class Upscale:
         return {'required': {
             'state': ('AP_STATE',), 'control': ('AP_CONTROL',),
             'scale': ('FLOAT', {'default': 2., 'min': 1., 'max': 4.}),
-            'upscale_model': (['Lanczos (no model)']+model_names('upscale_models', 'RealESRGAN_x4plus.safetensors'),),
+            'upscale_model': (['Lanczos (no model)']+model_names('upscale_models', 'Lanczos (no model)'),),
             'protect_mask': ('STRING', {'default': ''}),
             'prompt': ('STRING', {'default': 'photorealistic architectural photograph, fine natural material detail, preserve architecture', 'multiline': True}),
             'negative': ('STRING', {'default': 'new windows, changed geometry, oversharpening, artifacts', 'multiline': True}),
