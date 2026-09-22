@@ -7,6 +7,11 @@ from .dataset import (
     verify_dataset_lock,
     write_dataset_lock,
 )
+from .gt_preview import (
+    GTPreviewStyle,
+    render_gt_previews,
+    write_gt_previews,
+)
 from .gt_table import (
     CSV_COLUMNS,
     RegionBoxRow,
@@ -59,6 +64,9 @@ __all__ = [
     "sha256_file",
     "verify_dataset_lock",
     "write_dataset_lock",
+    "GTPreviewStyle",
+    "render_gt_previews",
+    "write_gt_previews",
     "CSV_COLUMNS",
     "RegionBoxRow",
     "load_region_box_csv",
