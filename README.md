@@ -2,7 +2,7 @@
 
 **Architecture-preservation QC for AI-assisted architectural visualization.**
 
-Status: **v0.1 foundation / LAB**
+Status: **v0.2 geometry evidence / LAB**
 
 Geometry Guardian checks whether architecture visible in an input reference is preserved after AI processing while allowing non-geometric changes such as lighting, materials, season, people, vegetation, and sky.
 
@@ -66,34 +66,39 @@ The passport stores stable IDs and property-level provenance for:
 - optional Scene Truth enrichment;
 - capabilities and limitations.
 
-Example element:
+## Geometry evidence v0.2
 
-```yaml
-id: W017
-identity:
-  value: W017
-  source: scene_object
-  verification: verified
-reference_outline:
-  value: [[100,100],[160,100],[160,220],[100,220]]
-  source: image_annotation
-  verification: human_verified
-expected_projection:
-  value: [100,100,160,220]
-  source: scene_projection
-  registration: verified
-after_match:
-  status: ambiguous
+The first image-only geometry channels are now implemented:
+
+```text
+BEFORE / AFTER
+   ├─ Canny edges
+   │    ↓
+   │  symmetric contour-distance metrics
+   │
+   ├─ OpenCV LSD line segments
+   │    ↓
+   │  local reference-line matching with refusal + ambiguity
+   │
+   └─ known opening matcher
+        ↓
+transparent evidence fusion
+        ↓
+QC status + coverage
 ```
 
-## v0.1 development target
+Important: contour or line evidence alone is not treated as proof. The fusion layer uses explicit rules and can return `REVIEW_REQUIRED` or `INSUFFICIENT_DATA`.
+
+## v0.2 development target
 
 First prototype:
 - one facade;
 - fixed camera;
 - 10–20 human-verified openings;
 - synthetic known changes;
-- no detector dependency required.
+- no detector dependency required;
+- contour and long-line evidence;
+- transparent evidence fusion.
 
 Control cases:
 1. unchanged;
@@ -111,12 +116,12 @@ Control cases:
 ```text
 src/geometry_guardian/
   reference/
-  registration/
   geometry/
   matching/
   evidence/
   qc/
-  adapters/
+  registration/   # planned v0.3
+  adapters/       # planned detector / ComfyUI integration
 schemas/
 tests/
 docs/
@@ -125,9 +130,9 @@ examples/
 
 ## Roadmap
 
-**v0.1** Reference Passport + deterministic local opening matcher + synthetic tests  
-**v0.2** contour and line evidence (OpenCV LSD / distance fields)  
-**v0.3** frame registration evidence (SuperPoint/LightGlue/RANSAC)  
-**v0.4** optional detector adapters (SAM3 / GroundingDINO / Florence-2 / YOLO-World)  
-**v0.5** ComfyUI adapter + Inspector cards  
-**v1.0** validated production QC protocol
+**v0.1 — complete:** Reference Passport + deterministic local opening matcher + synthetic tests  
+**v0.2 — active:** contour and line evidence (OpenCV Canny / distance fields / LSD) + evidence fusion  
+**v0.3:** frame registration evidence (SuperPoint/LightGlue/RANSAC)  
+**v0.4:** optional detector adapters (SAM3 / GroundingDINO / Florence-2 / YOLO-World)  
+**v0.5:** ComfyUI adapter + Inspector cards  
+**v1.0:** validated production QC protocol
