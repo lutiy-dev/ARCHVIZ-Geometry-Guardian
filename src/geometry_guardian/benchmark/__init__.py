@@ -7,6 +7,15 @@ from .dataset import (
     verify_dataset_lock,
     write_dataset_lock,
 )
+from .gt_table import (
+    CSV_COLUMNS,
+    RegionBoxRow,
+    load_region_box_csv,
+    rows_to_ground_truth,
+    validate_ground_truth_against_images,
+    write_ground_truth_json,
+    write_region_box_csv_template,
+)
 from .manifest import (
     REQUIRED_CATEGORIES,
     load_benchmark_manifest,
@@ -50,6 +59,13 @@ __all__ = [
     "sha256_file",
     "verify_dataset_lock",
     "write_dataset_lock",
+    "CSV_COLUMNS",
+    "RegionBoxRow",
+    "load_region_box_csv",
+    "rows_to_ground_truth",
+    "validate_ground_truth_against_images",
+    "write_ground_truth_json",
+    "write_region_box_csv_template",
     "REQUIRED_CATEGORIES",
     "load_benchmark_manifest",
     "missing_required_categories",
