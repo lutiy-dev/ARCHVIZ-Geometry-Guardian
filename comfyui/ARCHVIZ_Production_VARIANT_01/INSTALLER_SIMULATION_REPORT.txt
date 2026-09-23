@@ -1,0 +1,9 @@
+INSTALLER_SIMULATION: PASS
+
+Validated before Variant 01 publication:
+- old archviz_production_backup* moved outside custom_nodes
+- active archviz_production installed cleanly
+- workflow installed under user/default/workflows
+- deterministic demo inputs generated for LAB/shared input
+- generation models unchanged
+- Python packages unchanged

@@ -8,10 +8,10 @@ import torch
 import folder_paths
 
 from .state_core import PassError, canonical
-from .engine import ProductionStore, mask_set, asset_identity, geometry_diagnostic
+from .engine import ProductionStore, mask_set, load_mask, asset_identity, geometry_diagnostic
 from . import backends
 
-CATEGORY = 'ARCHVIZ/Production v0.2'
+CATEGORY = 'ARCHVIZ/Production VARIANT 01'
 STAGES = ('facade', 'road', 'greenery', 'people', 'upscale')
 
 
@@ -133,6 +133,130 @@ class Entry:
             s.close()
 
 
+
+
+def _mask_tensor_to_np(mask, shape, binary=False):
+    if mask is None:
+        return np.zeros(shape, np.float32)
+    if isinstance(mask, torch.Tensor):
+        a = mask.detach().float().cpu().numpy()
+    else:
+        a = np.asarray(mask, dtype=np.float32)
+    while a.ndim > 2:
+        a = a[0]
+    if a.shape != tuple(shape):
+        raise PassError(f'MASK_SIZE_MISMATCH_DIRECT: got {a.shape}, expected {tuple(shape)}')
+    a = np.clip(a.astype(np.float32), 0.0, 1.0)
+    return (a >= .5).astype(np.float32) if binary else a
+
+
+def _maskset(edit, protect, influence, composite, source):
+    alpha = composite * np.maximum(edit, influence) * (1.0 - protect)
+    if not np.any(alpha > 0):
+        raise PassError('EMPTY_EFFECTIVE_MASK: inspect Mask Preview / source')
+    return {
+        'source': source,
+        'edit': edit.astype(np.float32),
+        'protect': protect.astype(np.float32),
+        'influence': influence.astype(np.float32),
+        'composite': composite.astype(np.float32),
+    }
+
+
+class AutoMaskSet:
+    """Convert one semantic AUTO mask into the production EDIT/PROTECT/INFLUENCE/COMPOSITE contract."""
+    CATEGORY = CATEGORY
+    FUNCTION = 'execute'
+    RETURN_TYPES = ('AP_MASKSET',)
+    RETURN_NAMES = ('maskset',)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {'required': {
+            'reference_image': ('IMAGE',),
+            'auto_edit': ('MASK',),
+        }}
+
+    def execute(self, reference_image, auto_edit):
+        if reference_image.shape[0] != 1:
+            raise PassError('AUTO_MASK_REQUIRES_SINGLE_REFERENCE_IMAGE')
+        shape = tuple(reference_image.shape[1:3])
+        edit = _mask_tensor_to_np(auto_edit, shape, True)
+        protect = np.zeros(shape, np.float32)
+        influence = np.zeros(shape, np.float32)
+        composite = edit.copy()
+        return (_maskset(edit, protect, influence, composite, 'AUTO'),)
+
+
+class PreparedMaskSet:
+    """Load a complete PREPARED mask contract from ComfyUI input/ by path.
+
+    EDIT is required. PROTECT and INFLUENCE may be blank (zero).
+    COMPOSITE may be blank (falls back to max(EDIT, INFLUENCE)).
+    """
+    CATEGORY = CATEGORY
+    FUNCTION = 'execute'
+    RETURN_TYPES = ('AP_MASKSET',)
+    RETURN_NAMES = ('maskset',)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {'required': {
+            'reference_image': ('IMAGE',),
+            'edit_path': ('STRING', {'default': 'archviz_demo_v02/facade_edit.png'}),
+            'protect_path': ('STRING', {'default': ''}),
+            'influence_path': ('STRING', {'default': ''}),
+            'composite_path': ('STRING', {'default': ''}),
+        }}
+
+    def execute(self, reference_image, edit_path, protect_path, influence_path, composite_path):
+        if reference_image.shape[0] != 1:
+            raise PassError('PREPARED_MASK_REQUIRES_SINGLE_REFERENCE_IMAGE')
+        shape = tuple(reference_image.shape[1:3])
+        if not edit_path.strip():
+            raise PassError('PREPARED_EDIT_PATH_REQUIRED')
+        paths = {
+            'edit': input_path(edit_path),
+            'protect': input_path(protect_path) if protect_path.strip() else '',
+            'influence': input_path(influence_path) if influence_path.strip() else '',
+            'composite': input_path(composite_path) if composite_path.strip() else '',
+        }
+        masks = mask_set(paths, shape)
+        return (_maskset(masks['edit'], masks['protect'], masks['influence'], masks['composite'], 'PREPARED'),)
+
+
+class MaskSourceSwitch:
+    """True lazy AUTO/PREPARED switch: the unselected mask branch is not executed."""
+    CATEGORY = CATEGORY
+    FUNCTION = 'execute'
+    RETURN_TYPES = ('AP_MASKSET', 'MASK', 'MASK', 'MASK', 'MASK')
+    RETURN_NAMES = ('maskset', 'edit_preview', 'protect_preview', 'influence_preview', 'composite_preview')
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {'required': {
+            'source': (['AUTO', 'PREPARED'],),
+            'auto_maskset': ('AP_MASKSET', {'lazy': True}),
+            'prepared_maskset': ('AP_MASKSET', {'lazy': True}),
+        }}
+
+    def check_lazy_status(self, source, auto_maskset=None, prepared_maskset=None):
+        if source == 'AUTO' and auto_maskset is None:
+            return ['auto_maskset']
+        if source == 'PREPARED' and prepared_maskset is None:
+            return ['prepared_maskset']
+        return []
+
+    def execute(self, source, auto_maskset=None, prepared_maskset=None):
+        chosen = auto_maskset if source == 'AUTO' else prepared_maskset
+        if chosen is None:
+            raise PassError(f'{source}_MASKSET_MISSING')
+        def t(a):
+            return torch.from_numpy(np.asarray(a, dtype=np.float32).copy()).unsqueeze(0)
+        return (chosen, t(chosen['edit']), t(chosen['protect']),
+                t(chosen['influence']), t(chosen['composite']))
+
+
 class LocalPass:
     CATEGORY = CATEGORY
     FUNCTION = 'execute'
@@ -143,6 +267,7 @@ class LocalPass:
     def INPUT_TYPES(cls):
         return {'required': {
             'state': ('AP_STATE',), 'control': ('AP_CONTROL',),
+            'maskset': ('AP_MASKSET',),
             'stage': (list(STAGES[:4]),),
             'prompt': ('STRING', {'default': 'photorealistic architectural visualization, believable materials', 'multiline': True}),
             'negative': ('STRING', {'default': 'distorted architecture, extra windows, changed geometry, illustration, artifacts', 'multiline': True}),
@@ -161,16 +286,19 @@ class LocalPass:
             'erase_region': ('BOOLEAN', {'default': False}),
         }}
 
-    def execute(self, state, control, stage, edit_mask, protect_mask, influence_mask,
+    def execute(self, state, control, maskset, stage, edit_mask, protect_mask, influence_mask,
                 composite_mask, **settings):
         if state['blocked']:
             return (state,)
         mode = control[stage+'_mode']
         if mode == 'SKIP':
             return (record(state, stage, 'SKIPPED'),)
-        paths = {k: input_path(v) for k, v in dict(edit=edit_mask, protect=protect_mask,
-                 influence=influence_mask, composite=composite_mask).items()}
-        masks = mask_set(paths, state['image'].shape[:2])
+        # v0.3 production path: explicit AP_MASKSET supplied by 02 · MASK ENGINE.
+        # String paths remain as visible legacy widgets for backward traceability only.
+        masks = {k: np.asarray(maskset[k], dtype=np.float32) for k in ('edit','protect','influence','composite')}
+        expected = tuple(state['image'].shape[:2])
+        if any(masks[k].shape != expected for k in masks):
+            raise PassError('MASKSET_SIZE_MISMATCH')
         p = dict(settings, backend='sdxl-local-crop/v0.2', checkpoint=control['checkpoint'],
                  seed=(control['seed']+STAGES.index(stage)*1009) % (2**64),
                  checkpoint_identity=model_identity('checkpoints', control['checkpoint']))
@@ -274,10 +402,12 @@ class Inspector:
             if control['export_final'] and control['action'] == 'EXECUTE' and not state['blocked']:
                 if state['state_id'] != s.pointer():
                     raise PassError('EXPORT_NOT_CURRENT_HEAD: use matching CACHE lineage or CHECKOUT')
+                # Immutable state bundle already contains lossless float image, preview and manifest.
                 _, m = s.read(state['state_id'], accepted=True)
                 report['export'] = {'accepted_bundle': str(s.root/state['state_id']),
                                     'image_hash': m['image_hash'],
                                     'notice': 'image.npy is float32 master; preview.png is 8-bit delivery preview'}
+                # Revision-specific filename; repeated export is idempotent.
                 dest = s.root/('final_'+state['state_id']+'.json')
                 if not dest.exists():
                     with dest.open('x', encoding='utf-8') as f:
@@ -288,12 +418,25 @@ class Inspector:
             s.close()
 
 
-NODE_CLASS_MAPPINGS = {'APMasterControl': Master, 'APOriginalState': Entry,
-                       'APLocalPass': LocalPass, 'APUpscalePass': Upscale,
-                       'APQualityReview': Quality, 'APInspector': Inspector}
-NODE_DISPLAY_NAME_MAPPINGS = {'APMasterControl': 'ARCHVIZ · MASTER / Decisions',
+NODE_CLASS_MAPPINGS = {
+    'APMasterControl': Master,
+    'APOriginalState': Entry,
+    'APAutoMaskSet': AutoMaskSet,
+    'APPreparedMaskSet': PreparedMaskSet,
+    'APMaskSourceSwitch': MaskSourceSwitch,
+    'APLocalPass': LocalPass,
+    'APUpscalePass': Upscale,
+    'APQualityReview': Quality,
+    'APInspector': Inspector,
+}
+NODE_DISPLAY_NAME_MAPPINGS = {
+    'APMasterControl': 'ARCHVIZ · MASTER / Decisions',
     'APOriginalState': 'ARCHVIZ · Immutable Original / State',
+    'APAutoMaskSet': 'ARCHVIZ · AUTO Mask Contract',
+    'APPreparedMaskSet': 'ARCHVIZ · PREPARED Mask Contract',
+    'APMaskSourceSwitch': 'ARCHVIZ · Mask Source Switch / Preview',
     'APLocalPass': 'ARCHVIZ · Processor + Composite + QC',
     'APUpscalePass': 'ARCHVIZ · Upscale / Composite / QC',
     'APQualityReview': 'ARCHVIZ · Reference Contour Diagnostic',
-    'APInspector': 'ARCHVIZ · Inspector / Accepted Export'}
+    'APInspector': 'ARCHVIZ · Inspector / Accepted Export',
+}
