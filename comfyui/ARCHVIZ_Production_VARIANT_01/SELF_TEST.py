@@ -48,12 +48,10 @@ try:
         'archviz_demo_v02/facade_composite.png')[0]
     assert prep['source']=='PREPARED' and prep['edit'].shape==(h,w)
     auto=mod.AutoMaskSet().execute(ref,torch.from_numpy(m).unsqueeze(0))[0]
-    assert auto['source']=='AUTO'
+    assert auto['source']=='AUTO' and auto['status']=='READY'
+    empty_auto=mod.AutoMaskSet().execute(ref,torch.zeros((1,h,w),dtype=torch.float32))[0]
+    assert empty_auto['source']=='AUTO' and empty_auto['status']=='EMPTY'
     sw=mod.MaskSourceSwitch()
-    assert sw.check_lazy_status('AUTO',None,None)==['auto_maskset']
-    assert sw.check_lazy_status('PREPARED',None,None)==['prepared_maskset']
-    chosen=sw.execute('AUTO',auto,None)[0]
-    assert chosen['source']=='AUTO'
 
     # State entry persistence: same original/project is allowed twice.
     control=mod.Master().execute(project='archviz_variant01_selftest',action='EXECUTE',target_id='',reviewed=False,
@@ -64,11 +62,23 @@ try:
     state1=mod.Entry().execute(control,ref)[0]
     state2=mod.Entry().execute(control,ref)[0]
     assert state1['original_id']==state2['original_id']
-    # SKIP pass consumes explicit maskset without touching models/backend.
-    lp=mod.LocalPass().execute(state1,control,prep,'facade','','','','',
+    # SKIP: neither mask source nor LocalPass requires SAM3/masks.
+    assert sw.check_lazy_status('AUTO',control,ref,'facade',None,None)==[]
+    bypass=sw.execute('AUTO',control,ref,'facade',None,None)[0]
+    assert bypass['source']=='BYPASS' and bypass['status']=='SKIP'
+    lp=mod.LocalPass().execute(state1,control,None,'facade','','','','',
         steps=24,cfg=5.0,denoise=.24,max_side=1024,context_pixels=96,
         controlnet='diffusers_xl_canny_full.safetensors',control_strength=.65,erase_region=False)[0]
     assert lp['history'][-1]['status']=='SKIPPED'
+
+    # RUN + empty AUTO is a valid no-target passthrough.
+    control_run=dict(control); control_run['facade_mode']='RUN'
+    assert sw.check_lazy_status('AUTO',control_run,ref,'facade',None,None)==['auto_maskset']
+    no_target=mod.LocalPass().execute(state1,control_run,empty_auto,'facade','','','','',
+        steps=24,cfg=5.0,denoise=.24,max_side=1024,context_pixels=96,
+        controlnet='diffusers_xl_canny_full.safetensors',control_strength=.65,erase_region=False)[0]
+    assert no_target['history'][-1]['status']=='SKIPPED_EMPTY_MASK'
+    assert no_target['history'][-1]['reason']=='NO_TARGET_DETECTED'
 
     print('SELF_TEST: PASS')
     print(f'workflow_nodes={len(wf["nodes"])} links={len(wf["links"])}')
@@ -76,5 +86,7 @@ try:
     print('lazy_switches=4')
     print('state_repeat_same_original=PASS')
     print('localpass_skip=PASS')
+    print('pass_aware_mask_bypass=PASS')
+    print('empty_auto_passthrough=PASS')
 finally:
     shutil.rmtree(TMP,ignore_errors=True)
