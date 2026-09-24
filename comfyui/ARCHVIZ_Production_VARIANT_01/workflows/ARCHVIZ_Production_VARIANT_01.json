@@ -1,6 +1,6 @@
 {
   "last_node_id": 41,
-  "last_link_id": 62,
+  "last_link_id": 70,
   "nodes": [
     {
       "id": 1,
@@ -1016,6 +1016,21 @@
           "link": null
         },
         {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 63
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 64
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
           "name": "auto_maskset",
           "type": "AP_MASKSET",
           "link": 26
@@ -1066,7 +1081,8 @@
         "Node name for S&R": "APMaskSourceSwitch"
       },
       "widgets_values": [
-        "AUTO"
+        "AUTO",
+        "facade"
       ]
     },
     {
@@ -1331,6 +1347,21 @@
           "link": null
         },
         {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 65
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 66
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
           "name": "auto_maskset",
           "type": "AP_MASKSET",
           "link": 36
@@ -1381,7 +1412,8 @@
         "Node name for S&R": "APMaskSourceSwitch"
       },
       "widgets_values": [
-        "AUTO"
+        "AUTO",
+        "road"
       ]
     },
     {
@@ -1646,6 +1678,21 @@
           "link": null
         },
         {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 67
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 68
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
           "name": "auto_maskset",
           "type": "AP_MASKSET",
           "link": 46
@@ -1696,7 +1743,8 @@
         "Node name for S&R": "APMaskSourceSwitch"
       },
       "widgets_values": [
-        "AUTO"
+        "AUTO",
+        "greenery"
       ]
     },
     {
@@ -1961,6 +2009,21 @@
           "link": null
         },
         {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 69
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 70
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
           "name": "auto_maskset",
           "type": "AP_MASKSET",
           "link": 56
@@ -2011,7 +2074,8 @@
         "Node name for S&R": "APMaskSourceSwitch"
       },
       "widgets_values": [
-        "AUTO"
+        "AUTO",
+        "people"
       ]
     },
     {
@@ -2249,7 +2313,7 @@
       20,
       0,
       22,
-      1,
+      4,
       "AP_MASKSET"
     ],
     [
@@ -2257,7 +2321,7 @@
       21,
       0,
       22,
-      2,
+      5,
       "AP_MASKSET"
     ],
     [
@@ -2329,7 +2393,7 @@
       26,
       0,
       28,
-      1,
+      4,
       "AP_MASKSET"
     ],
     [
@@ -2337,7 +2401,7 @@
       27,
       0,
       28,
-      2,
+      5,
       "AP_MASKSET"
     ],
     [
@@ -2409,7 +2473,7 @@
       32,
       0,
       34,
-      1,
+      4,
       "AP_MASKSET"
     ],
     [
@@ -2417,7 +2481,7 @@
       33,
       0,
       34,
-      2,
+      5,
       "AP_MASKSET"
     ],
     [
@@ -2489,7 +2553,7 @@
       38,
       0,
       40,
-      1,
+      4,
       "AP_MASKSET"
     ],
     [
@@ -2497,7 +2561,7 @@
       39,
       0,
       40,
-      2,
+      5,
       "AP_MASKSET"
     ],
     [
@@ -2539,6 +2603,70 @@
       10,
       2,
       "AP_MASKSET"
+    ],
+    [
+      63,
+      1,
+      0,
+      22,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      64,
+      4,
+      0,
+      22,
+      2,
+      "IMAGE"
+    ],
+    [
+      65,
+      1,
+      0,
+      28,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      66,
+      4,
+      0,
+      28,
+      2,
+      "IMAGE"
+    ],
+    [
+      67,
+      1,
+      0,
+      34,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      68,
+      4,
+      0,
+      34,
+      2,
+      "IMAGE"
+    ],
+    [
+      69,
+      1,
+      0,
+      40,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      70,
+      4,
+      0,
+      40,
+      2,
+      "IMAGE"
     ]
   ],
   "groups": [
@@ -2696,7 +2824,7 @@
       ]
     },
     "archviz_version": "VARIANT_01",
-    "contract": "Manual accept; lazy AUTO/PREPARED mask source; explicit AP_MASKSET; v0.2 generation baseline unchanged; release label VARIANT_01"
+    "contract": "Pass-aware lazy mask engine; SKIP/CACHE bypass AUTO/PREPARED branches; RUN evaluates only selected mask source; AUTO EMPTY => NO_TARGET passthrough; PREPARED EMPTY strict; generation baseline unchanged"
   },
   "version": 0.4
 }
