@@ -8,10 +8,15 @@
 - Для каждого pass есть две независимые ветки масок:
   - AUTO: ORIGINAL → SAM3 → AUTO Mask Contract.
   - PREPARED: заранее подготовленные PNG → PREPARED Mask Contract.
-- Mask Source Switch — lazy: невыбранная ветка не исполняется.
+- Mask Source Switch — pass-aware + lazy: при SKIP/CACHE обе mask-ветки не исполняются; при RUN исполняется только выбранная AUTO/PREPARED ветка.
 - Mask Preview показывает фактическую область воздействия до RUN.
 - В pass маски приходят явно кабелем как AP_MASKSET.
-- RUN / CACHE / SKIP, Accepted State, manual ACCEPT/REJECT, QC, Inspector и Upscale сохранены.
+- SKIP = parent passthrough без SAM3/Mask Engine.
+- CACHE = reuse явно указанного accepted cache_id без SAM3/Mask Engine.
+- RUN = вычисляется только выбранная AUTO/PREPARED mask-ветка.
+- AUTO + пустая маска = NO_TARGET / passthrough без ошибки и без генератора.
+- PREPARED + пустая маска остаётся ошибкой.
+- Accepted State, manual ACCEPT/REJECT, QC, Inspector и Upscale сохранены.
 
 ## Генеративный baseline не изменён
 - RealVisXL_V4.0.safetensors
