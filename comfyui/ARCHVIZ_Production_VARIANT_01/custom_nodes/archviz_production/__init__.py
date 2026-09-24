@@ -152,10 +152,12 @@ def _mask_tensor_to_np(mask, shape, binary=False):
 
 def _maskset(edit, protect, influence, composite, source):
     alpha = composite * np.maximum(edit, influence) * (1.0 - protect)
-    if not np.any(alpha > 0):
+    empty = not np.any(alpha > 0)
+    if empty and source != 'AUTO':
         raise PassError('EMPTY_EFFECTIVE_MASK: inspect Mask Preview / source')
     return {
         'source': source,
+        'status': 'EMPTY' if empty else 'READY',
         'edit': edit.astype(np.float32),
         'protect': protect.astype(np.float32),
         'influence': influence.astype(np.float32),
@@ -226,7 +228,7 @@ class PreparedMaskSet:
 
 
 class MaskSourceSwitch:
-    """True lazy AUTO/PREPARED switch: the unselected mask branch is not executed."""
+    """Pass-aware lazy AUTO/PREPARED switch. SKIP/CACHE never execute mask branches."""
     CATEGORY = CATEGORY
     FUNCTION = 'execute'
     RETURN_TYPES = ('AP_MASKSET', 'MASK', 'MASK', 'MASK', 'MASK')
@@ -236,26 +238,47 @@ class MaskSourceSwitch:
     def INPUT_TYPES(cls):
         return {'required': {
             'source': (['AUTO', 'PREPARED'],),
+            'control': ('AP_CONTROL',),
+            'reference_image': ('IMAGE',),
+            'stage': (list(STAGES[:4]),),
             'auto_maskset': ('AP_MASKSET', {'lazy': True}),
             'prepared_maskset': ('AP_MASKSET', {'lazy': True}),
         }}
 
-    def check_lazy_status(self, source, auto_maskset=None, prepared_maskset=None):
+    def check_lazy_status(self, source, control, reference_image, stage,
+                          auto_maskset=None, prepared_maskset=None):
+        if control[stage+'_mode'] != 'RUN':
+            return []
         if source == 'AUTO' and auto_maskset is None:
             return ['auto_maskset']
         if source == 'PREPARED' and prepared_maskset is None:
             return ['prepared_maskset']
         return []
 
-    def execute(self, source, auto_maskset=None, prepared_maskset=None):
-        chosen = auto_maskset if source == 'AUTO' else prepared_maskset
-        if chosen is None:
-            raise PassError(f'{source}_MASKSET_MISSING')
+    def execute(self, source, control, reference_image, stage,
+                auto_maskset=None, prepared_maskset=None):
+        mode = control[stage+'_mode']
+        if mode != 'RUN':
+            if reference_image.shape[0] != 1:
+                raise PassError('MASK_SWITCH_REQUIRES_SINGLE_REFERENCE_IMAGE')
+            shape = tuple(reference_image.shape[1:3])
+            z = np.zeros(shape, np.float32)
+            chosen = {
+                'source': 'BYPASS',
+                'status': mode,
+                'edit': z.copy(),
+                'protect': z.copy(),
+                'influence': z.copy(),
+                'composite': z.copy(),
+            }
+        else:
+            chosen = auto_maskset if source == 'AUTO' else prepared_maskset
+            if chosen is None:
+                raise PassError(f'{source}_MASKSET_MISSING')
         def t(a):
             return torch.from_numpy(np.asarray(a, dtype=np.float32).copy()).unsqueeze(0)
         return (chosen, t(chosen['edit']), t(chosen['protect']),
                 t(chosen['influence']), t(chosen['composite']))
-
 
 class LocalPass:
     CATEGORY = CATEGORY
@@ -267,7 +290,7 @@ class LocalPass:
     def INPUT_TYPES(cls):
         return {'required': {
             'state': ('AP_STATE',), 'control': ('AP_CONTROL',),
-            'maskset': ('AP_MASKSET',),
+            'maskset': ('AP_MASKSET', {'lazy': True}),
             'stage': (list(STAGES[:4]),),
             'prompt': ('STRING', {'default': 'photorealistic architectural visualization, believable materials', 'multiline': True}),
             'negative': ('STRING', {'default': 'distorted architecture, extra windows, changed geometry, illustration, artifacts', 'multiline': True}),
@@ -286,6 +309,13 @@ class LocalPass:
             'erase_region': ('BOOLEAN', {'default': False}),
         }}
 
+    def check_lazy_status(self, state, control, maskset=None, stage='facade', **kwargs):
+        if state.get('blocked'):
+            return []
+        if control[stage+'_mode'] != 'RUN':
+            return []
+        return ['maskset'] if maskset is None else []
+
     def execute(self, state, control, maskset, stage, edit_mask, protect_mask, influence_mask,
                 composite_mask, **settings):
         if state['blocked']:
@@ -293,8 +323,31 @@ class LocalPass:
         mode = control[stage+'_mode']
         if mode == 'SKIP':
             return (record(state, stage, 'SKIPPED'),)
-        # v0.3 production path: explicit AP_MASKSET supplied by 02 · MASK ENGINE.
-        # String paths remain as visible legacy widgets for backward traceability only.
+
+        # CACHE is intentionally mask-engine-free. Explicit cache_id is required so
+        # reuse is deliberate and no current AUTO/PREPARED branch must be evaluated.
+        if mode == 'CACHE':
+            cache_id = control[stage+'_cache_id'].strip()
+            if not cache_id:
+                raise PassError('CACHE_ID_REQUIRED: CACHE bypasses Mask Engine; select an accepted cache state')
+            s = store_for(state['project'])
+            try:
+                cached, manifest = s.read(cache_id, accepted=True)
+                if manifest.get('parent_state_id') != state['state_id']:
+                    raise PassError('STALE_PARENT')
+                if manifest.get('pass_id') != stage:
+                    raise PassError('CACHE_PASS_MISMATCH')
+                result = {'status': 'CACHED', 'state_id': cache_id, 'image': cached, 'manifest': manifest}
+                return (routed(state, stage, result),)
+            finally:
+                s.close()
+
+        if maskset is None:
+            raise PassError('RUN_REQUIRES_MASKSET')
+        if maskset.get('source') == 'AUTO' and maskset.get('status') == 'EMPTY':
+            return (record(state, stage, 'SKIPPED_EMPTY_MASK',
+                           mask_source='AUTO', reason='NO_TARGET_DETECTED'),)
+
         masks = {k: np.asarray(maskset[k], dtype=np.float32) for k in ('edit','protect','influence','composite')}
         expected = tuple(state['image'].shape[:2])
         if any(masks[k].shape != expected for k in masks):
@@ -308,12 +361,11 @@ class LocalPass:
         try:
             original, _ = s.read(state['original_id'], accepted=True)
             callback = lambda parent, params: backends.sdxl_edit(parent, params, masks, original)
-            result = s.local_pass(mode, state['state_id'], masks, p, stage, callback,
+            result = s.local_pass('RUN', state['state_id'], masks, p, stage, callback,
                                   control[stage+'_cache_id'], control['run_nonce'])
             return (routed(state, stage, result),)
         finally:
             s.close()
-
 
 class Upscale:
     CATEGORY = CATEGORY
