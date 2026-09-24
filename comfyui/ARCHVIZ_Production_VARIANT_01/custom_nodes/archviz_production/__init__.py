@@ -228,7 +228,7 @@ class PreparedMaskSet:
 
 
 class MaskSourceSwitch:
-    """Pass-aware lazy AUTO/PREPARED switch. SKIP/CACHE never execute mask branches."""
+    """Pass-aware lazy AUTO/PREPARED switch. SKIP/CACHE do not execute mask branches."""
     CATEGORY = CATEGORY
     FUNCTION = 'execute'
     RETURN_TYPES = ('AP_MASKSET', 'MASK', 'MASK', 'MASK', 'MASK')
@@ -275,8 +275,10 @@ class MaskSourceSwitch:
             chosen = auto_maskset if source == 'AUTO' else prepared_maskset
             if chosen is None:
                 raise PassError(f'{source}_MASKSET_MISSING')
+
         def t(a):
             return torch.from_numpy(np.asarray(a, dtype=np.float32).copy()).unsqueeze(0)
+
         return (chosen, t(chosen['edit']), t(chosen['protect']),
                 t(chosen['influence']), t(chosen['composite']))
 
