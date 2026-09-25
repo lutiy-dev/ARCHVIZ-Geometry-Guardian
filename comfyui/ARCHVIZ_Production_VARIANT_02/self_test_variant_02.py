@@ -67,12 +67,12 @@ req(links[80][1]==14 and links[80][3]==50 and links[80][4]==1,'compare B must be
 # Every serialized link must be symmetric. This catches the 4-link repair warning
 # previously emitted by ComfyUI for control links 63/65/67/69.
 for lid,l in links.items():
-    _,src,src_slot,dst,dst_slot,_=l
-    outs=nodes[src]['outputs']
+    _,src_id,src_slot,dst_id,dst_slot,_=l
+    outs=nodes[src_id]['outputs']
     req(src_slot < len(outs),f'bad source slot for link {lid}')
     out_links=outs[src_slot].get('links')
     req(out_links is not None and lid in out_links,f'origin missing link {lid}')
-    ins=nodes[dst]['inputs']
+    ins=nodes[dst_id]['inputs']
     req(dst_slot < len(ins),f'bad target slot for link {lid}')
     req(ins[dst_slot].get('link')==lid,f'target missing link {lid}')
 
