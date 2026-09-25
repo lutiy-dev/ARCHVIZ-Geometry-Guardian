@@ -122,7 +122,9 @@ class Entry:
         try:
             oid = s.initialize(original_np)
             action = control['action']
-            sid = oid
+            # Every new EXECUTE starts from the current accepted head, not from ORIGINAL.
+            # This preserves previously ACCEPTED work while ORIGINAL remains immutable truth.
+            sid = s.pointer() or oid
             decision = None
             if action in ('ACCEPT', 'REJECT'):
                 decision = s.decide(control['target_id'].strip(), action,
