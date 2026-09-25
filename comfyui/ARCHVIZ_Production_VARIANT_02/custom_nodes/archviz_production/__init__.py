@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import folder_paths
 
-from .state_core import PassError, canonical, array_hash, digest, image_array
+from .state_core import PassError, canonical, array_hash, digest, image_array, composite, local_qc
 from .engine import ProductionStore, mask_set, load_mask, asset_identity, geometry_diagnostic
 from . import backends
 
@@ -150,13 +150,30 @@ class Entry:
                 sid = s.pointer()
             image, manifest = s.read(sid, accepted=True)
             return ({'workspace': workspace, 'workspace_namespace': namespace,
-                     'original_hash': original_hash, 'state_id': sid, 'original_id': oid,
+                     'original_hash': original_hash, 'state_id': sid, 'base_state_id': sid,
+                     'original_id': oid, 'working_dirty': False,
                      'image': image, 'blocked': action != 'EXECUTE',
                      'history': [dict(stage='entry', action=action, state_id=sid,
                                       head=s.pointer(), decision_result=decision)],
                      'notice': 'Await explicit EXECUTE' if action != 'EXECUTE' else ''},)
         finally:
             s.close()
+
+
+def _release_vram():
+    """Best-effort model offload between SAM3 and SDXL/ESRGAN stages.
+
+    This does not change model/settings; it only releases inactive GPU allocations.
+    """
+    try:
+        import comfy.model_management as mm
+        if hasattr(mm, 'unload_all_models'):
+            mm.unload_all_models()
+        if hasattr(mm, 'soft_empty_cache'):
+            mm.soft_empty_cache()
+    except Exception:
+        # Memory cleanup must never turn a valid pass into a hard failure.
+        pass
 
 
 class StateImage:
@@ -174,6 +191,34 @@ class StateImage:
         image = image_array(state['image'])
         return (torch.from_numpy(image.copy()).unsqueeze(0),)
 
+
+
+class MaskReference:
+    """CPU resize used only for semantic detection; production image stays full-resolution."""
+    CATEGORY = CATEGORY
+    FUNCTION = 'execute'
+    RETURN_TYPES = ('IMAGE',)
+    RETURN_NAMES = ('image',)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {'required': {
+            'image': ('IMAGE',),
+            'max_side': ('INT', {'default': 1024, 'min': 512, 'max': 2048, 'step': 64}),
+        }}
+
+    def execute(self, image, max_side):
+        if image.shape[0] != 1:
+            raise PassError('MASK_REFERENCE_REQUIRES_SINGLE_IMAGE')
+        a = image[0].detach().float().cpu().numpy()
+        h, w = a.shape[:2]
+        scale = min(1.0, float(max_side) / max(h, w))
+        if scale >= 1.0:
+            return (image,)
+        nw = max(8, int(round(w * scale / 8.0)) * 8)
+        nh = max(8, int(round(h * scale / 8.0)) * 8)
+        resized = backends.resize_float(a, nw, nh)
+        return (torch.from_numpy(resized.copy()).unsqueeze(0),)
 
 
 def _mask_tensor_to_np(mask, shape, binary=False):
@@ -224,7 +269,15 @@ class AutoMaskSet:
         if reference_image.shape[0] != 1:
             raise PassError('AUTO_MASK_REQUIRES_SINGLE_REFERENCE_IMAGE')
         shape = tuple(reference_image.shape[1:3])
-        edit = _mask_tensor_to_np(auto_edit, shape, True)
+        if isinstance(auto_edit, torch.Tensor):
+            edit = auto_edit.detach().float().cpu().numpy()
+        else:
+            edit = np.asarray(auto_edit, dtype=np.float32)
+        while edit.ndim > 2:
+            edit = edit[0]
+        if edit.shape != shape:
+            edit = backends.resize_float(edit.astype(np.float32), shape[1], shape[0], True)
+        edit = (np.clip(edit, 0.0, 1.0) >= .5).astype(np.float32)
         protect = np.zeros(shape, np.float32)
         influence = np.zeros(shape, np.float32)
         composite = edit.copy()
@@ -359,27 +412,30 @@ class LocalPass:
 
     def execute(self, state, control, maskset, stage, edit_mask, protect_mask, influence_mask,
                 composite_mask, **settings):
-        if state['blocked']:
+        if state.get('blocked'):
             return (state,)
         mode = control[stage+'_mode']
         if mode == 'SKIP':
             return (record(state, stage, 'SKIPPED'),)
 
-        # CACHE is intentionally mask-engine-free. Explicit cache_id is required so
-        # reuse is deliberate and no current AUTO/PREPARED branch must be evaluated.
+        # Legacy accepted-state CACHE remains available only before any working RUN.
+        # Hansen-style execution normally uses RUN/SKIP through the whole chain.
         if mode == 'CACHE':
+            if state.get('working_dirty'):
+                raise PassError('CACHE_AFTER_WORKING_RUN_UNSUPPORTED: use RUN or SKIP in sequential mode')
             cache_id = control[stage+'_cache_id'].strip()
             if not cache_id:
-                raise PassError('CACHE_ID_REQUIRED: CACHE bypasses Mask Engine; select an accepted cache state')
+                raise PassError('CACHE_ID_REQUIRED')
             s = store_for(state['workspace'])
             try:
                 cached, manifest = s.read(cache_id, accepted=True)
-                if manifest.get('parent_state_id') != state['state_id']:
-                    raise PassError('STALE_PARENT')
                 if manifest.get('pass_id') != stage:
                     raise PassError('CACHE_PASS_MISMATCH')
-                result = {'status': 'CACHED', 'state_id': cache_id, 'image': cached, 'manifest': manifest}
-                return (routed(state, stage, result),)
+                out = record(state, stage, 'CACHED', cache_id=cache_id)
+                out['image'] = cached
+                out['state_id'] = cache_id
+                out['base_state_id'] = cache_id
+                return (out,)
             finally:
                 s.close()
 
@@ -389,22 +445,43 @@ class LocalPass:
             return (record(state, stage, 'SKIPPED_EMPTY_MASK',
                            mask_source='AUTO', reason='NO_TARGET_DETECTED'),)
 
-        masks = {k: np.asarray(maskset[k], dtype=np.float32) for k in ('edit','protect','influence','composite')}
-        expected = tuple(state['image'].shape[:2])
+        masks = {k: np.asarray(maskset[k], dtype=np.float32)
+                 for k in ('edit','protect','influence','composite')}
+        parent = image_array(state['image'])
+        expected = tuple(parent.shape[:2])
         if any(masks[k].shape != expected for k in masks):
             raise PassError('MASKSET_SIZE_MISMATCH')
+
         p = dict(settings, backend='sdxl-local-crop/v0.2', checkpoint=control['checkpoint'],
                  seed=(control['seed']+STAGES.index(stage)*1009) % (2**64),
                  checkpoint_identity=model_identity('checkpoints', control['checkpoint']))
         if p['control_strength']:
             p['controlnet_identity'] = model_identity('controlnet', p['controlnet'])
+
         s = store_for(state['workspace'])
         try:
             original, _ = s.read(state['original_id'], accepted=True)
-            callback = lambda parent, params: backends.sdxl_edit(parent, params, masks, original)
-            result = s.local_pass('RUN', state['state_id'], masks, p, stage, callback,
-                                  control[stage+'_cache_id'], control['run_nonce'])
-            return (routed(state, stage, result),)
+            s.event('PROCESSOR_CALLED', {'stage': stage, 'profile': p['backend'],
+                                         'working_parent_hash': array_hash(parent)})
+            _release_vram()  # SAM3 no longer needs to occupy VRAM while SDXL runs.
+            try:
+                raw = backends.sdxl_edit(parent, p, masks, original)
+                out_image, alpha = composite(parent, raw, masks)
+            except Exception as e:
+                s.event('PROCESSOR_FAILED', {'stage': stage, 'error': str(e)})
+                raise
+            finally:
+                _release_vram()  # Make room for the next stage's SAM3.
+            qc = local_qc(parent, out_image, masks, alpha)
+            qc['geometry_diagnostic'] = geometry_diagnostic(original, out_image)
+            out = record(state, stage, 'WORKING_RUN',
+                         mask_source=maskset.get('source'),
+                         result_hash=array_hash(out_image), qc=qc)
+            out['image'] = out_image
+            out['working_dirty'] = True
+            out['blocked'] = False
+            out['notice'] = 'Sequential working image; final ACCEPT/REJECT happens after the full chain.'
+            return (out,)
         finally:
             s.close()
 
@@ -432,27 +509,77 @@ class Upscale:
         }}
 
     def execute(self, state, control, protect_mask, **settings):
-        if state['blocked']:
+        if state.get('blocked'):
             return (state,)
         mode = control['upscale_mode']
         if mode == 'SKIP' or control['upscale_method'] == 'OFF':
             return (record(state, 'upscale', 'SKIPPED'),)
+        if mode == 'CACHE':
+            if state.get('working_dirty'):
+                raise PassError('UPSCALE_CACHE_AFTER_WORKING_RUN_UNSUPPORTED: use RUN')
+            cache_id = control['upscale_cache_id'].strip()
+            if not cache_id:
+                raise PassError('CACHE_ID_REQUIRED')
+            s = store_for(state['workspace'])
+            try:
+                cached, manifest = s.read(cache_id, accepted=True)
+                out = record(state, 'upscale', 'CACHED', cache_id=cache_id)
+                out['image'] = cached
+                out['state_id'] = cache_id
+                out['base_state_id'] = cache_id
+                return (out,)
+            finally:
+                s.close()
         if settings['tile_overlap'] >= settings['tile_size']:
             raise PassError('tile_overlap must be smaller than tile_size')
-        p = dict(settings, backend='upscale-local/v0.2', upscale_mode=control['upscale_method'],
-                 checkpoint=control['checkpoint'], seed=(control['seed']+4001) % (2**64))
+
+        parent = image_array(state['image'])
+        p = dict(settings, backend='upscale-local/v0.2',
+                 upscale_mode=control['upscale_method'],
+                 checkpoint=control['checkpoint'],
+                 seed=(control['seed']+4001) % (2**64))
         if p['upscale_mode'] == 'GENERATIVE':
             p['checkpoint_identity'] = model_identity('checkpoints', p['checkpoint'])
         elif p['upscale_model'] != 'Lanczos (no model)':
             p['upscale_model_identity'] = model_identity('upscale_models', p['upscale_model'])
+
         s = store_for(state['workspace'])
         try:
-            result = s.upscale_pass(mode, state['state_id'], p, backends.upscale,
-                                    control['upscale_cache_id'], control['run_nonce'], input_path(protect_mask))
-            return (routed(state, 'upscale', result),)
+            s.event('PROCESSOR_CALLED', {'stage': 'upscale', 'profile': p['backend'],
+                                         'working_parent_hash': array_hash(parent)})
+            _release_vram()
+            try:
+                candidate = image_array(backends.upscale(parent, p))
+            except Exception as e:
+                s.event('PROCESSOR_FAILED', {'stage': 'upscale', 'error': str(e)})
+                raise
+            finally:
+                _release_vram()
+
+            h, w = parent.shape[:2]
+            baseline = backends.resize_float(parent, round(w*p['scale']), round(h*p['scale']))
+            if candidate.shape != baseline.shape:
+                raise PassError('INVALID_UPSCALE_DIMENSIONS')
+            protect = load_mask(input_path(protect_mask), (h, w), True) if protect_mask.strip() else np.zeros((h,w), np.float32)
+            protect = backends.resize_float(protect, baseline.shape[1], baseline.shape[0], True)
+            blend = p['detail_blend'] if p['upscale_mode'] == 'GENERATIVE' else 1.0
+            alpha = np.full(baseline.shape[:2], blend, np.float32) * (1-protect)
+            out_image = baseline.copy()
+            active = alpha > 0
+            a = alpha[active, None]
+            out_image[active] = baseline[active]*(1-a) + candidate[active]*a
+            original, _ = s.read(state['original_id'], accepted=True)
+            qc = local_qc(baseline, out_image, {'protect': protect}, alpha)
+            qc['geometry_diagnostic'] = geometry_diagnostic(original, out_image)
+            out = record(state, 'upscale', 'WORKING_RUN',
+                         result_hash=array_hash(out_image), qc=qc)
+            out['image'] = out_image
+            out['working_dirty'] = True
+            out['blocked'] = False
+            out['notice'] = 'Sequential working image; final ACCEPT/REJECT happens after the full chain.'
+            return (out,)
         finally:
             s.close()
-
 
 class Quality:
     CATEGORY = CATEGORY
@@ -490,23 +617,33 @@ class Inspector:
         s = store_for(state['workspace'])
         try:
             report = {k: v for k, v in state.items() if k != 'image'}
+            preview = image_array(state['image'])
+            if control['action'] == 'EXECUTE' and not state.get('blocked') and state.get('working_dirty'):
+                final = s.finalize_pipeline(state['base_state_id'], preview,
+                                            state['history'], control['run_nonce'])
+                preview = final['image']
+                report.update(final_status=final['status'],
+                              attempt_id=final.get('attempt_id'),
+                              final_request_key=final.get('request_key'),
+                              reused_attempt=final.get('reused_attempt', False),
+                              notice='Review final pipeline candidate, then ACCEPT or REJECT once.')
+            elif control['action'] == 'EXECUTE' and not state.get('working_dirty'):
+                report.update(final_status='NO_CHANGES',
+                              notice='No RUN stage changed the accepted image; no candidate created.')
+
             report.update(current_head=s.pointer(), processor_calls=s.call_count(),
-                          storage=str(s.root), dimensions=list(state['image'].shape))
-            if control['export_final'] and control['action'] == 'EXECUTE' and not state['blocked']:
-                if state['state_id'] != s.pointer():
-                    raise PassError('EXPORT_NOT_CURRENT_HEAD: use matching CACHE lineage or CHECKOUT')
-                # Immutable state bundle already contains lossless float image, preview and manifest.
-                _, m = s.read(state['state_id'], accepted=True)
-                report['export'] = {'accepted_bundle': str(s.root/state['state_id']),
+                          storage=str(s.root), dimensions=list(preview.shape))
+
+            if control['export_final'] and control['action'] != 'EXECUTE':
+                sid = s.pointer()
+                _, m = s.read(sid, accepted=True)
+                report['export'] = {'accepted_bundle': str(s.root/sid),
                                     'image_hash': m['image_hash'],
                                     'notice': 'image.npy is float32 master; preview.png is 8-bit delivery preview'}
-                # Revision-specific filename; repeated export is idempotent.
-                dest = s.root/('final_'+state['state_id']+'.json')
-                if not dest.exists():
-                    with dest.open('x', encoding='utf-8') as f:
-                        f.write(json.dumps(report, ensure_ascii=False, indent=2))
+
             text = json.dumps(report, ensure_ascii=False, indent=2)
-            return {'ui': {'text': [text]}, 'result': (torch.from_numpy(state['image'].copy()).unsqueeze(0), text)}
+            return {'ui': {'text': [text]},
+                    'result': (torch.from_numpy(preview.copy()).unsqueeze(0), text)}
         finally:
             s.close()
 
@@ -515,6 +652,7 @@ NODE_CLASS_MAPPINGS = {
     'APMasterControl': Master,
     'APOriginalState': Entry,
     'APStateImage': StateImage,
+    'APMaskReference': MaskReference,
     'APAutoMaskSet': AutoMaskSet,
     'APPreparedMaskSet': PreparedMaskSet,
     'APMaskSourceSwitch': MaskSourceSwitch,
@@ -527,6 +665,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     'APMasterControl': 'ARCHVIZ · MASTER / Decisions',
     'APOriginalState': 'ARCHVIZ · Auto Workspace / Immutable Original',
     'APStateImage': 'ARCHVIZ · Current Stage Image',
+    'APMaskReference': 'ARCHVIZ · SAM3 Mask Reference (Downscale)',
     'APAutoMaskSet': 'ARCHVIZ · AUTO Mask Contract',
     'APPreparedMaskSet': 'ARCHVIZ · PREPARED Mask Contract',
     'APMaskSourceSwitch': 'ARCHVIZ · Mask Source Switch / Preview',
