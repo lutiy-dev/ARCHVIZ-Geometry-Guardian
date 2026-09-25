@@ -19,6 +19,7 @@ src=INIT.read_text(encoding='utf-8')
 req("'project': ('STRING'" not in src,'manual project widget still exists')
 req("control['project']" not in src and "state['project']" not in src,'manual project state still used')
 req("workspace_key(" in src and "archviz_workspace_id" in src,'automatic workspace logic missing')
+req("sid = s.pointer() or oid" in src,'EXECUTE does not start from current accepted head')
 req("'APStateImage': StateImage" in src,'APStateImage node missing')
 req("state.get('blocked')" in src,'blocked state does not gate mask switch')
 req("if empty and source != 'AUTO':" in src,'AUTO empty-mask policy missing')
@@ -138,4 +139,4 @@ with tempfile.TemporaryDirectory() as td:
     req((lab/'custom_nodes'/'archviz_production'/'__init__.py').is_file(),'custom node not installed')
     req((shared/'archviz_demo_v02_original.png').is_file(),'shared input demo missing')
 
-print(json.dumps({'status':'PASS','variant':'VARIANT_02','workflow_nodes':len(wf['nodes']),'workflow_links':len(wf['links']),'manual_project_id_removed':True,'auto_workspace':'workflow namespace + ORIGINAL hash','runtime_architecture':'HANSEN_SEQUENTIAL_WORKING','sequential_stage_images':'PASS_STATIC','combination_matrix':'PASS_STATIC','sam3_mask_reference_1024':'PASS_STATIC','vram_barriers':'PASS_STATIC','final_single_review_gate':'PASS_STATIC','final_image_comparer':'PASS_STATIC','link_symmetry':'PASS','auto_empty_passthrough':'PASS','prepared_empty_strict':'PASS','generation_baseline_preserved':'PASS','installer_simulation':'PASS','workflow_sha256':sha(WF),'runtime_gpu_tested':False},indent=2))
+print(json.dumps({'status':'PASS','variant':'VARIANT_02','workflow_nodes':len(wf['nodes']),'workflow_links':len(wf['links']),'manual_project_id_removed':True,'auto_workspace':'workflow namespace + ORIGINAL hash','execute_from_current_head':'PASS_STATIC','runtime_architecture':'HANSEN_SEQUENTIAL_WORKING','sequential_stage_images':'PASS_STATIC','combination_matrix':'PASS_STATIC','sam3_mask_reference_1024':'PASS_STATIC','vram_barriers':'PASS_STATIC','final_single_review_gate':'PASS_STATIC','final_image_comparer':'PASS_STATIC','link_symmetry':'PASS','auto_empty_passthrough':'PASS','prepared_empty_strict':'PASS','generation_baseline_preserved':'PASS','installer_simulation':'PASS','workflow_sha256':sha(WF),'runtime_gpu_tested':False},indent=2))
