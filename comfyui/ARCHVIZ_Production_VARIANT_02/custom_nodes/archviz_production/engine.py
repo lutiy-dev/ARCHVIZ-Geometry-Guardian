@@ -120,6 +120,65 @@ class ProductionStore(Store):
         self.bind(token, result['attempt_id'])
         return result
 
+    def finalize_pipeline(self, parent_id, image, history, nonce):
+        """Persist one final review candidate after the full Hansen-style working chain.
+
+        Intermediate RUN stages stay in-memory and do not block downstream stages.
+        Only this final candidate enters the ACCEPT/REJECT transaction.
+        """
+        parent, pm = self.read(parent_id, accepted=True)
+        out = image_array(image)
+        original_id = self.pointer('original')
+        compact_history = []
+        for item in history:
+            compact_history.append({
+                'stage': item.get('stage'),
+                'status': item.get('status'),
+                'result_hash': item.get('result_hash'),
+                'mask_source': item.get('mask_source'),
+            })
+        req = {
+            'parent_state_id': parent_id,
+            'original_id': original_id,
+            'pass_id': 'pipeline',
+            'profile': 'hansen-sequential/v0.2',
+            'pipeline_history': compact_history,
+            'final_image_hash': array_hash(out),
+            'parent_image_hash': pm['image_hash'],
+        }
+        key = digest(canonical(req).encode())
+        token, prior = self.prior_attempt(key, nonce)
+        if prior:
+            return prior
+        self.reserve(token)
+        original, _ = self.read(original_id, accepted=True)
+        qc = {
+            'policy_version': 'archviz-0.2',
+            'overall': 'REVIEW_REQUIRED',
+            'geometry': {'status': 'NOT_EVALUATED', 'coverage': 0,
+                         'reason': 'Human review required; ORIGINAL retained.'},
+            'visual': {'status': 'NOT_EVALUATED', 'reason': 'Human review required.'},
+            'local': {'status': 'PASS', 'protected_changed_pixels': 0,
+                      'outside_alpha_changed_pixels': 0,
+                      'changed_pixels': int(np.count_nonzero(
+                          np.any(resize_float(parent, out.shape[1], out.shape[0]) != out, axis=2)
+                      )) if parent.shape != out.shape else int(np.count_nonzero(np.any(parent != out, axis=2))),
+                      'seams': 'NOT_EVALUATED', 'hallucinations': 'NOT_EVALUATED'},
+            'geometry_diagnostic': geometry_diagnostic(original, out),
+        }
+        aid, mh = self._bundle(
+            'attempt', out,
+            dict(req, request_key=key, qc=qc, status_at_creation='AWAITING_ACCEPT',
+                 pipeline_history=history),
+        )
+        with self.db:
+            self.db.execute('INSERT INTO records VALUES (?,?,?,?)',
+                            (aid, 'attempt', 'AWAITING_ACCEPT', mh))
+        self.bind(token, aid)
+        return {'status': 'AWAITING_ACCEPT', 'attempt_id': aid, 'image': out,
+                'qc': qc, 'request_key': key, 'reused_attempt': False,
+                'processor_calls': self.call_count()}
+
     def upscale_pass(self, mode, parent_id, params, processor, cache_id, nonce, protect_path=''):
         parent, pm = self.read(parent_id, accepted=True)
         h, w = parent.shape[:2]
