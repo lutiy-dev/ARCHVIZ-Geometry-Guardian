@@ -417,6 +417,8 @@ class LocalPass:
             s = store_for(state['workspace'])
             try:
                 cached, manifest = s.read(cache_id, accepted=True)
+                if manifest.get('parent_state_id') != state['state_id']:
+                    raise PassError('STALE_PARENT')
                 if manifest.get('pass_id') != stage:
                     raise PassError('CACHE_PASS_MISMATCH')
                 out = record(state, stage, 'CACHED', cache_id=cache_id)
@@ -511,6 +513,10 @@ class Upscale:
             s = store_for(state['workspace'])
             try:
                 cached, manifest = s.read(cache_id, accepted=True)
+                if manifest.get('parent_state_id') != state['state_id']:
+                    raise PassError('STALE_PARENT')
+                if manifest.get('pass_id') != 'upscale':
+                    raise PassError('CACHE_PASS_MISMATCH')
                 out = record(state, 'upscale', 'CACHED', cache_id=cache_id)
                 out['image'] = cached
                 out['state_id'] = cache_id
