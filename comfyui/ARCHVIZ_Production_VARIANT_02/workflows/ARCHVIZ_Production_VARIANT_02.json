@@ -1,6 +1,6 @@
 {
-  "last_node_id": 45,
-  "last_link_id": 74,
+  "last_node_id": 50,
+  "last_link_id": 80,
   "nodes": [
     {
       "id": 1,
@@ -29,7 +29,11 @@
             8,
             10,
             13,
-            16
+            16,
+            63,
+            65,
+            67,
+            69
           ],
           "slot_index": 0
         }
@@ -114,7 +118,7 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "ARCHVIZ v0.2 · LOCAL SDXL\n1. Default INSPECT does not generate. Demo is a synthetic test image.\n2. EXECUTE + Facade RUN → candidate. Other passes stop.\n3. Copy attempt_id from report to target_id. Review image. Set reviewed=true + note, then ACCEPT or REJECT and Queue.\n4. After ACCEPT set Facade CACHE, Road RUN, action EXECUTE. Repeat.\n5. run_nonce++ explicitly regenerates. Changing seed invalidates all affected CACHE.\nFGB OFF = pass-through SKIP, not CACHE. Read README_RU.md."
+        "ARCHVIZ Production VARIANT 02 · HANSEN-STYLE SEQUENTIAL\n1. action=EXECUTE.\n2. Any combination of FACADE / ROAD / GREENERY / PEOPLE may be RUN or SKIP in ONE queue.\n3. Each RUN receives the actual working image produced by the previous stage. SKIP is passthrough.\n4. UPSCALE may RUN after any combination of working stages in the same queue.\n5. SAM3 uses a 1024px mask-reference only; the production image stays full-resolution and the mask is restored to full size.\n6. The whole chain creates ONE final AWAITING_ACCEPT candidate.\n7. Review FINAL COMPARE, then set action=ACCEPT or REJECT once using the final attempt_id.\n8. run_nonce++ explicitly regenerates. Generation models/settings remain the approved v0.2 baseline."
       ]
     },
     {
@@ -138,7 +142,8 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            2
+            2,
+            79
           ],
           "slot_index": 0
         },
@@ -222,7 +227,7 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "VARIANT 01 MASK ENGINE\nAUTO and PREPARED are independent lazy branches.\nAUTO: ORIGINAL → SAM3 → AUTO Mask Contract.\nPREPARED: file paths → PREPARED Mask Contract.\nMask Source Switch executes ONLY the selected branch and exposes previews.\nPass receives AP_MASKSET by cable. Generation baseline remains v0.2."
+        "MASK ENGINE · HANSEN-STYLE\nAUTO and PREPARED remain independent lazy branches.\nAUTO: CURRENT STAGE FULL IMAGE -> CPU MASK REFERENCE (max side 1024) -> SAM3 -> restore mask to full production resolution.\nPREPARED: full-resolution masks from input/.\nMask Source Switch executes only for stage=RUN.\nSKIP does not execute SAM3.\nThe next stage always sees the actual working image from the previous stage.\nVRAM is released between SAM3 and SDXL and again before the next semantic pass."
       ]
     },
     {
@@ -647,7 +652,8 @@
           "name": "preview",
           "type": "IMAGE",
           "links": [
-            17
+            17,
+            80
           ],
           "slot_index": 0
         },
@@ -2128,9 +2134,9 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            21,
             23,
-            25
+            25,
+            75
           ],
           "slot_index": 0
         }
@@ -2167,9 +2173,9 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            31,
             33,
-            35
+            35,
+            76
           ],
           "slot_index": 0
         }
@@ -2206,9 +2212,9 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            41,
             43,
-            45
+            45,
+            77
           ],
           "slot_index": 0
         }
@@ -2245,15 +2251,215 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            51,
             53,
-            55
+            55,
+            78
           ],
           "slot_index": 0
         }
       ],
       "properties": {
         "Node name for S&R": "APStateImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 46,
+      "type": "APMaskReference",
+      "title": "FACADE · SAM3 MASK REFERENCE 1024",
+      "pos": [
+        1510,
+        520
+      ],
+      "size": [
+        330,
+        120
+      ],
+      "flags": {},
+      "order": 45,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 75
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            21
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskReference"
+      },
+      "widgets_values": [
+        1024
+      ]
+    },
+    {
+      "id": 47,
+      "type": "APMaskReference",
+      "title": "ROAD · SAM3 MASK REFERENCE 1024",
+      "pos": [
+        1510,
+        1200
+      ],
+      "size": [
+        330,
+        120
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 76
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            31
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskReference"
+      },
+      "widgets_values": [
+        1024
+      ]
+    },
+    {
+      "id": 48,
+      "type": "APMaskReference",
+      "title": "GREENERY · SAM3 MASK REFERENCE 1024",
+      "pos": [
+        1510,
+        1880
+      ],
+      "size": [
+        330,
+        120
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 77
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            41
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskReference"
+      },
+      "widgets_values": [
+        1024
+      ]
+    },
+    {
+      "id": 49,
+      "type": "APMaskReference",
+      "title": "PEOPLE · SAM3 MASK REFERENCE 1024",
+      "pos": [
+        1510,
+        2560
+      ],
+      "size": [
+        330,
+        120
+      ],
+      "flags": {},
+      "order": 48,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 78
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            51
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskReference"
+      },
+      "widgets_values": [
+        1024
+      ]
+    },
+    {
+      "id": 50,
+      "type": "Image Comparer (rgthree)",
+      "title": "FINAL COMPARE · ORIGINAL ↔ PIPELINE RESULT",
+      "pos": [
+        6800,
+        2360
+      ],
+      "size": [
+        760,
+        620
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [
+        {
+          "dir": 3,
+          "name": "image_a",
+          "type": "IMAGE",
+          "link": 79
+        },
+        {
+          "dir": 3,
+          "name": "image_b",
+          "type": "IMAGE",
+          "link": 80
+        }
+      ],
+      "outputs": [
+        {
+          "dir": 4,
+          "name": "images",
+          "shape": 3,
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Image Comparer (rgthree)",
+        "comparer_mode": "Slide"
       },
       "widgets_values": []
     }
@@ -2421,7 +2627,7 @@
     ],
     [
       21,
-      42,
+      46,
       0,
       19,
       1,
@@ -2501,7 +2707,7 @@
     ],
     [
       31,
-      43,
+      47,
       0,
       25,
       1,
@@ -2581,7 +2787,7 @@
     ],
     [
       41,
-      44,
+      48,
       0,
       31,
       1,
@@ -2661,7 +2867,7 @@
     ],
     [
       51,
-      45,
+      49,
       0,
       37,
       1,
@@ -2850,6 +3056,54 @@
       45,
       0,
       "AP_STATE"
+    ],
+    [
+      75,
+      42,
+      0,
+      46,
+      0,
+      "IMAGE"
+    ],
+    [
+      76,
+      43,
+      0,
+      47,
+      0,
+      "IMAGE"
+    ],
+    [
+      77,
+      44,
+      0,
+      48,
+      0,
+      "IMAGE"
+    ],
+    [
+      78,
+      45,
+      0,
+      49,
+      0,
+      "IMAGE"
+    ],
+    [
+      79,
+      4,
+      0,
+      50,
+      0,
+      "IMAGE"
+    ],
+    [
+      80,
+      14,
+      0,
+      50,
+      1,
+      "IMAGE"
     ]
   ],
   "groups": [
@@ -2990,7 +3244,7 @@
         6760,
         440,
         840,
-        1920
+        2600
       ],
       "color": "#51436b",
       "font_size": 28,
@@ -3007,8 +3261,9 @@
       ]
     },
     "archviz_version": "VARIANT_02",
-    "contract": "Projectless UI; internal workspace = workflow namespace + ORIGINAL hash; sequential stage references FACADE→ROAD→GREENERY→PEOPLE; pass-aware lazy masks; AUTO EMPTY passthrough; generation baseline unchanged",
-    "archviz_workspace_id": "avp_v02_8f4a2d0c6b71477f9a2e5c913a64e182"
+    "contract": "Hansen-style sequential working image FACADE→ROAD→GREENERY→PEOPLE→UPSCALE; one final ACCEPT/REJECT gate; SAM3 mask-reference max-side 1024; VRAM barriers; final rgthree Image Comparer; generation baseline unchanged",
+    "archviz_workspace_id": "avp_v02_8f4a2d0c6b71477f9a2e5c913a64e182",
+    "archviz_runtime": "hansen-sequential-working-v02"
   },
   "version": 0.4
 }
