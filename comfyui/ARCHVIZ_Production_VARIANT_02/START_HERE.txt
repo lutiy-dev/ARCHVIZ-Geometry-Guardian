@@ -1,0 +1,19 @@
+ARCHVIZ Production VARIANT 02
+
+1) Fully close ComfyUI Desktop.
+2) Run RUN_INSTALL_DESKTOP_LAB.cmd
+3) Continue only after SELF_TEST PASS and INSTALL PASS.
+4) Restart ComfyUI Desktop.
+5) Open ARCHVIZ_Production_VARIANT_02.json
+
+Project ID is removed.
+Workspace isolation is automatic: workflow namespace + ORIGINAL hash.
+
+First real test:
+action = EXECUTE
+FACADE = RUN
+ROAD = SKIP
+GREENERY = SKIP
+PEOPLE = SKIP
+UPSCALE = SKIP
+Queue.

@@ -1,0 +1,3014 @@
+{
+  "last_node_id": 45,
+  "last_link_id": 74,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "APMasterControl",
+      "title": "MASTER · no Project ID / explicit decisions",
+      "pos": [
+        40,
+        100
+      ],
+      "size": [
+        510,
+        1010
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "links": [
+            1,
+            4,
+            6,
+            8,
+            10,
+            13,
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMasterControl"
+      },
+      "widgets_values": [
+        "INSPECT",
+        "",
+        false,
+        "",
+        1,
+        "RealVisXL_V4.0.safetensors",
+        42001,
+        "fixed",
+        "SKIP",
+        "",
+        "SKIP",
+        "",
+        "SKIP",
+        "",
+        "SKIP",
+        "",
+        "SKIP",
+        "",
+        "OFF",
+        false
+      ]
+    },
+    {
+      "id": 2,
+      "type": "Fast Groups Bypasser (rgthree)",
+      "title": "STAGE ENABLE · disabled = SKIP",
+      "pos": [
+        40,
+        1200
+      ],
+      "size": [
+        510,
+        270
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "OPT_CONNECTION",
+          "type": "*",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Fast Groups Bypasser (rgthree)",
+        "matchTitle": "^(10|20|30|40|60) ·",
+        "showNav": true,
+        "showAllGraphs": false,
+        "sort": "alphanumeric"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 3,
+      "type": "Note",
+      "title": "START HERE",
+      "pos": [
+        40,
+        1540
+      ],
+      "size": [
+        510,
+        400
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "ARCHVIZ v0.2 · LOCAL SDXL\n1. Default INSPECT does not generate. Demo is a synthetic test image.\n2. EXECUTE + Facade RUN → candidate. Other passes stop.\n3. Copy attempt_id from report to target_id. Review image. Set reviewed=true + note, then ACCEPT or REJECT and Queue.\n4. After ACCEPT set Facade CACHE, Road RUN, action EXECUTE. Repeat.\n5. run_nonce++ explicitly regenerates. Changing seed invalidates all affected CACHE.\nFGB OFF = pass-through SKIP, not CACHE. Read README_RU.md."
+      ]
+    },
+    {
+      "id": 4,
+      "type": "LoadImage",
+      "title": "ORIGINAL · replace demo for real work",
+      "pos": [
+        650,
+        100
+      ],
+      "size": [
+        480,
+        470
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "archviz_demo_v02_original.png",
+        "image"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "APOriginalState",
+      "title": "STATE ENTRY · AUTO WORKSPACE / immutable ORIGINAL",
+      "pos": [
+        650,
+        650
+      ],
+      "size": [
+        480,
+        160
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 1
+        },
+        {
+          "name": "original",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "accepted_state",
+          "type": "AP_STATE",
+          "links": [
+            3,
+            64,
+            71
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APOriginalState"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 6,
+      "type": "Note",
+      "title": "MASK ENGINE · contract",
+      "pos": [
+        650,
+        900
+      ],
+      "size": [
+        500,
+        520
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "VARIANT 01 MASK ENGINE\nAUTO and PREPARED are independent lazy branches.\nAUTO: ORIGINAL → SAM3 → AUTO Mask Contract.\nPREPARED: file paths → PREPARED Mask Contract.\nMask Source Switch executes ONLY the selected branch and exposes previews.\nPass receives AP_MASKSET by cable. Generation baseline remains v0.2."
+      ]
+    },
+    {
+      "id": 7,
+      "type": "APLocalPass",
+      "title": "FACADE · RUN · explicit MASKSET",
+      "pos": [
+        3300,
+        100
+      ],
+      "size": [
+        510,
+        1120
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 3
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 4
+        },
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "link": 59
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state_or_review_candidate",
+          "type": "AP_STATE",
+          "links": [
+            5,
+            66,
+            72
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APLocalPass"
+      },
+      "widgets_values": [
+        "facade",
+        "architectural photograph, realistic facade stone and plaster, subtle physically plausible roughness, preserve all window openings, joints and building silhouette, same lighting",
+        "distorted architecture, extra windows, changed geometry, illustration, artifacts",
+        "archviz_demo_v02/facade_edit.png",
+        "archviz_demo_v02/facade_protect.png",
+        "",
+        "archviz_demo_v02/facade_composite.png",
+        24,
+        5,
+        0.24,
+        1024,
+        96,
+        "diffusers_xl_canny_full.safetensors",
+        0.65,
+        false
+      ]
+    },
+    {
+      "id": 8,
+      "type": "APLocalPass",
+      "title": "ROAD · RUN · explicit MASKSET",
+      "pos": [
+        4000,
+        100
+      ],
+      "size": [
+        510,
+        1120
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 5
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 6
+        },
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "link": 60
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state_or_review_candidate",
+          "type": "AP_STATE",
+          "links": [
+            7,
+            68,
+            73
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APLocalPass"
+      },
+      "widgets_values": [
+        "road",
+        "architectural photograph, realistic asphalt and paving stones, fine material grain, restrained weathering, preserve curb boundaries and perspective, same lighting",
+        "distorted architecture, extra windows, changed geometry, illustration, artifacts",
+        "archviz_demo_v02/road_edit.png",
+        "archviz_demo_v02/building_protect.png",
+        "",
+        "archviz_demo_v02/road_composite.png",
+        24,
+        5,
+        0.28,
+        1024,
+        96,
+        "diffusers_xl_canny_full.safetensors",
+        0.55,
+        false
+      ]
+    },
+    {
+      "id": 9,
+      "type": "APLocalPass",
+      "title": "GREENERY · RUN · explicit MASKSET",
+      "pos": [
+        4700,
+        100
+      ],
+      "size": [
+        510,
+        1120
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 7
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 8
+        },
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state_or_review_candidate",
+          "type": "AP_STATE",
+          "links": [
+            9,
+            70,
+            74
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APLocalPass"
+      },
+      "widgets_values": [
+        "greenery",
+        "architectural photograph, realistic healthy landscape planting, natural leaves, diverse foliage, believable scale, grounded contact shadows, preserve surrounding architecture",
+        "distorted architecture, extra windows, changed geometry, illustration, artifacts",
+        "archviz_demo_v02/greenery_edit.png",
+        "archviz_demo_v02/building_protect.png",
+        "",
+        "archviz_demo_v02/greenery_composite.png",
+        24,
+        5,
+        0.4,
+        1024,
+        96,
+        "diffusers_xl_canny_full.safetensors",
+        0.25,
+        false
+      ]
+    },
+    {
+      "id": 10,
+      "type": "APLocalPass",
+      "title": "PEOPLE · RUN · explicit MASKSET",
+      "pos": [
+        5400,
+        100
+      ],
+      "size": [
+        510,
+        1120
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 9
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 10
+        },
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "link": 62
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state_or_review_candidate",
+          "type": "AP_STATE",
+          "links": [
+            11
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APLocalPass"
+      },
+      "widgets_values": [
+        "people",
+        "one realistic person walking, full body, natural anatomy, correct perspective and human scale, matching scene lighting, subtle contact shadow",
+        "distorted architecture, extra windows, changed geometry, illustration, artifacts",
+        "archviz_demo_v02/people_edit.png",
+        "archviz_demo_v02/building_protect.png",
+        "archviz_demo_v02/people_influence.png",
+        "archviz_demo_v02/people_composite.png",
+        24,
+        5,
+        0.85,
+        1024,
+        96,
+        "diffusers_xl_canny_full.safetensors",
+        0,
+        true
+      ]
+    },
+    {
+      "id": 11,
+      "type": "APQualityReview",
+      "title": "PRE-UPSCALE · review contour drift",
+      "pos": [
+        6100,
+        100
+      ],
+      "size": [
+        480,
+        180
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APQualityReview"
+      },
+      "widgets_values": [
+        "FINAL CONSISTENCY"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "APUpscalePass",
+      "title": "UPSCALE · conservative / generative",
+      "pos": [
+        6100,
+        510
+      ],
+      "size": [
+        480,
+        850
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 12
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state_or_review_candidate",
+          "type": "AP_STATE",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APUpscalePass"
+      },
+      "widgets_values": [
+        2,
+        "RealESRGAN_x4plus.safetensors",
+        "",
+        "photorealistic architectural photograph, fine natural material detail, preserve architecture",
+        "new windows, changed geometry, oversharpening, artifacts",
+        16,
+        4,
+        0.12,
+        768,
+        128,
+        0.5
+      ]
+    },
+    {
+      "id": 13,
+      "type": "APQualityReview",
+      "title": "POST-UPSCALE · review required",
+      "pos": [
+        6800,
+        100
+      ],
+      "size": [
+        510,
+        180
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "links": [
+            15
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APQualityReview"
+      },
+      "widgets_values": [
+        "POST UPSCALE QC"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "APInspector",
+      "title": "REPORT · copy attempt_id for decision",
+      "pos": [
+        6800,
+        510
+      ],
+      "size": [
+        510,
+        220
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 15
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "preview",
+          "type": "IMAGE",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            18
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APInspector"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 15,
+      "type": "PreviewImage",
+      "title": "CURRENT PREVIEW · may be unaccepted",
+      "pos": [
+        6800,
+        850
+      ],
+      "size": [
+        760,
+        600
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 17
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "PreviewAny",
+      "title": "STATE / QC / NEXT ACTION",
+      "pos": [
+        6800,
+        1530
+      ],
+      "size": [
+        760,
+        780
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 18
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [
+        "Plain text"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "CheckpointLoaderSimple",
+      "title": "SAM3 · shared model / text encoder",
+      "pos": [
+        1250,
+        80
+      ],
+      "size": [
+        430,
+        160
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            20,
+            30,
+            40,
+            50
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            19,
+            29,
+            39,
+            49
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "sam3.1_multiplex_fp16.safetensors"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "CLIPTextEncode",
+      "title": "FACADE · SAM3 prompt",
+      "pos": [
+        1250,
+        320
+      ],
+      "size": [
+        410,
+        180
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            22
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "building facade walls"
+      ]
+    },
+    {
+      "id": 19,
+      "type": "SAM3_Detect",
+      "title": "FACADE · AUTO segmentation",
+      "pos": [
+        1710,
+        320
+      ],
+      "size": [
+        430,
+        280
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 20
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 21
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 22
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "link": null
+        },
+        {
+          "name": "positive_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "negative_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "refine_iterations",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "individual_masks",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            24
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SAM3_Detect",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        0.45,
+        2,
+        false
+      ]
+    },
+    {
+      "id": 20,
+      "type": "APAutoMaskSet",
+      "title": "FACADE · AUTO MASK CONTRACT",
+      "pos": [
+        2180,
+        320
+      ],
+      "size": [
+        390,
+        150
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 23
+        },
+        {
+          "name": "auto_edit",
+          "type": "MASK",
+          "link": 24
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            26
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APAutoMaskSet"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 21,
+      "type": "APPreparedMaskSet",
+      "title": "FACADE · PREPARED MASK CONTRACT",
+      "pos": [
+        2180,
+        500
+      ],
+      "size": [
+        440,
+        250
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            27
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APPreparedMaskSet"
+      },
+      "widgets_values": [
+        "archviz_demo_v02/facade_edit.png",
+        "archviz_demo_v02/facade_protect.png",
+        "",
+        "archviz_demo_v02/facade_composite.png"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "APMaskSourceSwitch",
+      "title": "FACADE · MASK SOURCE / PREVIEW",
+      "pos": [
+        2680,
+        320
+      ],
+      "size": [
+        460,
+        320
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 63
+        },
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 64
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "auto_maskset",
+          "type": "AP_MASKSET",
+          "link": 26
+        },
+        {
+          "name": "prepared_maskset",
+          "type": "AP_MASKSET",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            59
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "edit_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "protect_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "influence_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "composite_preview",
+          "type": "MASK",
+          "links": [
+            28
+          ],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskSourceSwitch"
+      },
+      "widgets_values": [
+        "AUTO",
+        "facade"
+      ]
+    },
+    {
+      "id": 23,
+      "type": "MaskPreview",
+      "title": "FACADE · EFFECT AREA PREVIEW",
+      "pos": [
+        2680,
+        670
+      ],
+      "size": [
+        460,
+        280
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 28
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 24,
+      "type": "CLIPTextEncode",
+      "title": "ROAD · SAM3 prompt",
+      "pos": [
+        1250,
+        1000
+      ],
+      "size": [
+        410,
+        180
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 29
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            32
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "road sidewalk pavement ground"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "SAM3_Detect",
+      "title": "ROAD · AUTO segmentation",
+      "pos": [
+        1710,
+        1000
+      ],
+      "size": [
+        430,
+        280
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 30
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 31
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 32
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "link": null
+        },
+        {
+          "name": "positive_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "negative_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "refine_iterations",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "individual_masks",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            34
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SAM3_Detect",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        0.45,
+        2,
+        false
+      ]
+    },
+    {
+      "id": 26,
+      "type": "APAutoMaskSet",
+      "title": "ROAD · AUTO MASK CONTRACT",
+      "pos": [
+        2180,
+        1000
+      ],
+      "size": [
+        390,
+        150
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 33
+        },
+        {
+          "name": "auto_edit",
+          "type": "MASK",
+          "link": 34
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            36
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APAutoMaskSet"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 27,
+      "type": "APPreparedMaskSet",
+      "title": "ROAD · PREPARED MASK CONTRACT",
+      "pos": [
+        2180,
+        1180
+      ],
+      "size": [
+        440,
+        250
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 35
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            37
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APPreparedMaskSet"
+      },
+      "widgets_values": [
+        "archviz_demo_v02/road_edit.png",
+        "archviz_demo_v02/building_protect.png",
+        "",
+        "archviz_demo_v02/road_composite.png"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "APMaskSourceSwitch",
+      "title": "ROAD · MASK SOURCE / PREVIEW",
+      "pos": [
+        2680,
+        1000
+      ],
+      "size": [
+        460,
+        320
+      ],
+      "flags": {},
+      "order": 27,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 65
+        },
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 66
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "auto_maskset",
+          "type": "AP_MASKSET",
+          "link": 36
+        },
+        {
+          "name": "prepared_maskset",
+          "type": "AP_MASKSET",
+          "link": 37
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            60
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "edit_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "protect_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "influence_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "composite_preview",
+          "type": "MASK",
+          "links": [
+            38
+          ],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskSourceSwitch"
+      },
+      "widgets_values": [
+        "AUTO",
+        "road"
+      ]
+    },
+    {
+      "id": 29,
+      "type": "MaskPreview",
+      "title": "ROAD · EFFECT AREA PREVIEW",
+      "pos": [
+        2680,
+        1350
+      ],
+      "size": [
+        460,
+        280
+      ],
+      "flags": {},
+      "order": 28,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 38
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 30,
+      "type": "CLIPTextEncode",
+      "title": "GREENERY · SAM3 prompt",
+      "pos": [
+        1250,
+        1680
+      ],
+      "size": [
+        410,
+        180
+      ],
+      "flags": {},
+      "order": 29,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 39
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            42
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "trees shrubs plants vegetation grass"
+      ]
+    },
+    {
+      "id": 31,
+      "type": "SAM3_Detect",
+      "title": "GREENERY · AUTO segmentation",
+      "pos": [
+        1710,
+        1680
+      ],
+      "size": [
+        430,
+        280
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 40
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 41
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 42
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "link": null
+        },
+        {
+          "name": "positive_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "negative_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "refine_iterations",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "individual_masks",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            44
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SAM3_Detect",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        0.45,
+        2,
+        false
+      ]
+    },
+    {
+      "id": 32,
+      "type": "APAutoMaskSet",
+      "title": "GREENERY · AUTO MASK CONTRACT",
+      "pos": [
+        2180,
+        1680
+      ],
+      "size": [
+        390,
+        150
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 43
+        },
+        {
+          "name": "auto_edit",
+          "type": "MASK",
+          "link": 44
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            46
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APAutoMaskSet"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 33,
+      "type": "APPreparedMaskSet",
+      "title": "GREENERY · PREPARED MASK CONTRACT",
+      "pos": [
+        2180,
+        1860
+      ],
+      "size": [
+        440,
+        250
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 45
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            47
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APPreparedMaskSet"
+      },
+      "widgets_values": [
+        "archviz_demo_v02/greenery_edit.png",
+        "archviz_demo_v02/building_protect.png",
+        "",
+        "archviz_demo_v02/greenery_composite.png"
+      ]
+    },
+    {
+      "id": 34,
+      "type": "APMaskSourceSwitch",
+      "title": "GREENERY · MASK SOURCE / PREVIEW",
+      "pos": [
+        2680,
+        1680
+      ],
+      "size": [
+        460,
+        320
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 67
+        },
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 68
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "auto_maskset",
+          "type": "AP_MASKSET",
+          "link": 46
+        },
+        {
+          "name": "prepared_maskset",
+          "type": "AP_MASKSET",
+          "link": 47
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            61
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "edit_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "protect_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "influence_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "composite_preview",
+          "type": "MASK",
+          "links": [
+            48
+          ],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskSourceSwitch"
+      },
+      "widgets_values": [
+        "AUTO",
+        "greenery"
+      ]
+    },
+    {
+      "id": 35,
+      "type": "MaskPreview",
+      "title": "GREENERY · EFFECT AREA PREVIEW",
+      "pos": [
+        2680,
+        2030
+      ],
+      "size": [
+        460,
+        280
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 48
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 36,
+      "type": "CLIPTextEncode",
+      "title": "PEOPLE · SAM3 prompt",
+      "pos": [
+        1250,
+        2360
+      ],
+      "size": [
+        410,
+        180
+      ],
+      "flags": {},
+      "order": 35,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 49
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            52
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "person people pedestrian"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "SAM3_Detect",
+      "title": "PEOPLE · AUTO segmentation",
+      "pos": [
+        1710,
+        2360
+      ],
+      "size": [
+        430,
+        280
+      ],
+      "flags": {},
+      "order": 36,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 50
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 51
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 52
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "link": null
+        },
+        {
+          "name": "positive_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "negative_coords",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "refine_iterations",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "individual_masks",
+          "type": "BOOLEAN",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            54
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SAM3_Detect",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        0.45,
+        2,
+        false
+      ]
+    },
+    {
+      "id": 38,
+      "type": "APAutoMaskSet",
+      "title": "PEOPLE · AUTO MASK CONTRACT",
+      "pos": [
+        2180,
+        2360
+      ],
+      "size": [
+        390,
+        150
+      ],
+      "flags": {},
+      "order": 37,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 53
+        },
+        {
+          "name": "auto_edit",
+          "type": "MASK",
+          "link": 54
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            56
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APAutoMaskSet"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 39,
+      "type": "APPreparedMaskSet",
+      "title": "PEOPLE · PREPARED MASK CONTRACT",
+      "pos": [
+        2180,
+        2540
+      ],
+      "size": [
+        440,
+        250
+      ],
+      "flags": {},
+      "order": 38,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 55
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            57
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APPreparedMaskSet"
+      },
+      "widgets_values": [
+        "archviz_demo_v02/people_edit.png",
+        "archviz_demo_v02/building_protect.png",
+        "archviz_demo_v02/people_influence.png",
+        "archviz_demo_v02/people_composite.png"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "APMaskSourceSwitch",
+      "title": "PEOPLE · MASK SOURCE / PREVIEW",
+      "pos": [
+        2680,
+        2360
+      ],
+      "size": [
+        460,
+        320
+      ],
+      "flags": {},
+      "order": 39,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "control",
+          "type": "AP_CONTROL",
+          "link": 69
+        },
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 70
+        },
+        {
+          "name": "stage",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "auto_maskset",
+          "type": "AP_MASKSET",
+          "link": 56
+        },
+        {
+          "name": "prepared_maskset",
+          "type": "AP_MASKSET",
+          "link": 57
+        }
+      ],
+      "outputs": [
+        {
+          "name": "maskset",
+          "type": "AP_MASKSET",
+          "links": [
+            62
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "edit_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "protect_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "influence_preview",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "composite_preview",
+          "type": "MASK",
+          "links": [
+            58
+          ],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APMaskSourceSwitch"
+      },
+      "widgets_values": [
+        "AUTO",
+        "people"
+      ]
+    },
+    {
+      "id": 41,
+      "type": "MaskPreview",
+      "title": "PEOPLE · EFFECT AREA PREVIEW",
+      "pos": [
+        2680,
+        2710
+      ],
+      "size": [
+        460,
+        280
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 58
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 42,
+      "type": "APStateImage",
+      "title": "FACADE · CURRENT STAGE IMAGE",
+      "pos": [
+        1180,
+        520
+      ],
+      "size": [
+        300,
+        90
+      ],
+      "flags": {},
+      "order": 41,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 71
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            21,
+            23,
+            25
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APStateImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 43,
+      "type": "APStateImage",
+      "title": "ROAD · CURRENT STAGE IMAGE",
+      "pos": [
+        1180,
+        1200
+      ],
+      "size": [
+        300,
+        90
+      ],
+      "flags": {},
+      "order": 42,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 72
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            31,
+            33,
+            35
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APStateImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 44,
+      "type": "APStateImage",
+      "title": "GREENERY · CURRENT STAGE IMAGE",
+      "pos": [
+        1180,
+        1880
+      ],
+      "size": [
+        300,
+        90
+      ],
+      "flags": {},
+      "order": 43,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 73
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            41,
+            43,
+            45
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APStateImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 45,
+      "type": "APStateImage",
+      "title": "PEOPLE · CURRENT STAGE IMAGE",
+      "pos": [
+        1180,
+        2560
+      ],
+      "size": [
+        300,
+        90
+      ],
+      "flags": {},
+      "order": 44,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "state",
+          "type": "AP_STATE",
+          "link": 74
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            51,
+            53,
+            55
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "APStateImage"
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      5,
+      0,
+      "AP_CONTROL"
+    ],
+    [
+      2,
+      4,
+      0,
+      5,
+      1,
+      "IMAGE"
+    ],
+    [
+      3,
+      5,
+      0,
+      7,
+      0,
+      "AP_STATE"
+    ],
+    [
+      4,
+      1,
+      0,
+      7,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      5,
+      7,
+      0,
+      8,
+      0,
+      "AP_STATE"
+    ],
+    [
+      6,
+      1,
+      0,
+      8,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      7,
+      8,
+      0,
+      9,
+      0,
+      "AP_STATE"
+    ],
+    [
+      8,
+      1,
+      0,
+      9,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      9,
+      9,
+      0,
+      10,
+      0,
+      "AP_STATE"
+    ],
+    [
+      10,
+      1,
+      0,
+      10,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      11,
+      10,
+      0,
+      11,
+      0,
+      "AP_STATE"
+    ],
+    [
+      12,
+      11,
+      0,
+      12,
+      0,
+      "AP_STATE"
+    ],
+    [
+      13,
+      1,
+      0,
+      12,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      14,
+      12,
+      0,
+      13,
+      0,
+      "AP_STATE"
+    ],
+    [
+      15,
+      13,
+      0,
+      14,
+      0,
+      "AP_STATE"
+    ],
+    [
+      16,
+      1,
+      0,
+      14,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      17,
+      14,
+      0,
+      15,
+      0,
+      "IMAGE"
+    ],
+    [
+      18,
+      14,
+      1,
+      16,
+      0,
+      "STRING"
+    ],
+    [
+      19,
+      17,
+      1,
+      18,
+      0,
+      "CLIP"
+    ],
+    [
+      20,
+      17,
+      0,
+      19,
+      0,
+      "MODEL"
+    ],
+    [
+      21,
+      42,
+      0,
+      19,
+      1,
+      "IMAGE"
+    ],
+    [
+      22,
+      18,
+      0,
+      19,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      23,
+      42,
+      0,
+      20,
+      0,
+      "IMAGE"
+    ],
+    [
+      24,
+      19,
+      0,
+      20,
+      1,
+      "MASK"
+    ],
+    [
+      25,
+      42,
+      0,
+      21,
+      0,
+      "IMAGE"
+    ],
+    [
+      26,
+      20,
+      0,
+      22,
+      4,
+      "AP_MASKSET"
+    ],
+    [
+      27,
+      21,
+      0,
+      22,
+      5,
+      "AP_MASKSET"
+    ],
+    [
+      28,
+      22,
+      4,
+      23,
+      0,
+      "MASK"
+    ],
+    [
+      29,
+      17,
+      1,
+      24,
+      0,
+      "CLIP"
+    ],
+    [
+      30,
+      17,
+      0,
+      25,
+      0,
+      "MODEL"
+    ],
+    [
+      31,
+      43,
+      0,
+      25,
+      1,
+      "IMAGE"
+    ],
+    [
+      32,
+      24,
+      0,
+      25,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      33,
+      43,
+      0,
+      26,
+      0,
+      "IMAGE"
+    ],
+    [
+      34,
+      25,
+      0,
+      26,
+      1,
+      "MASK"
+    ],
+    [
+      35,
+      43,
+      0,
+      27,
+      0,
+      "IMAGE"
+    ],
+    [
+      36,
+      26,
+      0,
+      28,
+      4,
+      "AP_MASKSET"
+    ],
+    [
+      37,
+      27,
+      0,
+      28,
+      5,
+      "AP_MASKSET"
+    ],
+    [
+      38,
+      28,
+      4,
+      29,
+      0,
+      "MASK"
+    ],
+    [
+      39,
+      17,
+      1,
+      30,
+      0,
+      "CLIP"
+    ],
+    [
+      40,
+      17,
+      0,
+      31,
+      0,
+      "MODEL"
+    ],
+    [
+      41,
+      44,
+      0,
+      31,
+      1,
+      "IMAGE"
+    ],
+    [
+      42,
+      30,
+      0,
+      31,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      43,
+      44,
+      0,
+      32,
+      0,
+      "IMAGE"
+    ],
+    [
+      44,
+      31,
+      0,
+      32,
+      1,
+      "MASK"
+    ],
+    [
+      45,
+      44,
+      0,
+      33,
+      0,
+      "IMAGE"
+    ],
+    [
+      46,
+      32,
+      0,
+      34,
+      4,
+      "AP_MASKSET"
+    ],
+    [
+      47,
+      33,
+      0,
+      34,
+      5,
+      "AP_MASKSET"
+    ],
+    [
+      48,
+      34,
+      4,
+      35,
+      0,
+      "MASK"
+    ],
+    [
+      49,
+      17,
+      1,
+      36,
+      0,
+      "CLIP"
+    ],
+    [
+      50,
+      17,
+      0,
+      37,
+      0,
+      "MODEL"
+    ],
+    [
+      51,
+      45,
+      0,
+      37,
+      1,
+      "IMAGE"
+    ],
+    [
+      52,
+      36,
+      0,
+      37,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      53,
+      45,
+      0,
+      38,
+      0,
+      "IMAGE"
+    ],
+    [
+      54,
+      37,
+      0,
+      38,
+      1,
+      "MASK"
+    ],
+    [
+      55,
+      45,
+      0,
+      39,
+      0,
+      "IMAGE"
+    ],
+    [
+      56,
+      38,
+      0,
+      40,
+      4,
+      "AP_MASKSET"
+    ],
+    [
+      57,
+      39,
+      0,
+      40,
+      5,
+      "AP_MASKSET"
+    ],
+    [
+      58,
+      40,
+      4,
+      41,
+      0,
+      "MASK"
+    ],
+    [
+      59,
+      22,
+      0,
+      7,
+      2,
+      "AP_MASKSET"
+    ],
+    [
+      60,
+      28,
+      0,
+      8,
+      2,
+      "AP_MASKSET"
+    ],
+    [
+      61,
+      34,
+      0,
+      9,
+      2,
+      "AP_MASKSET"
+    ],
+    [
+      62,
+      40,
+      0,
+      10,
+      2,
+      "AP_MASKSET"
+    ],
+    [
+      63,
+      1,
+      0,
+      22,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      64,
+      5,
+      0,
+      22,
+      2,
+      "AP_STATE"
+    ],
+    [
+      65,
+      1,
+      0,
+      28,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      66,
+      7,
+      0,
+      28,
+      2,
+      "AP_STATE"
+    ],
+    [
+      67,
+      1,
+      0,
+      34,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      68,
+      8,
+      0,
+      34,
+      2,
+      "AP_STATE"
+    ],
+    [
+      69,
+      1,
+      0,
+      40,
+      1,
+      "AP_CONTROL"
+    ],
+    [
+      70,
+      9,
+      0,
+      40,
+      2,
+      "AP_STATE"
+    ],
+    [
+      71,
+      5,
+      0,
+      42,
+      0,
+      "AP_STATE"
+    ],
+    [
+      72,
+      7,
+      0,
+      43,
+      0,
+      "AP_STATE"
+    ],
+    [
+      73,
+      8,
+      0,
+      44,
+      0,
+      "AP_STATE"
+    ],
+    [
+      74,
+      9,
+      0,
+      45,
+      0,
+      "AP_STATE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "00 · MASTER CONTROL",
+      "bounding": [
+        0,
+        30,
+        590,
+        1950
+      ],
+      "color": "#4a4269",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "01 · ORIGINAL / ACCEPTED INPUT",
+      "bounding": [
+        610,
+        30,
+        560,
+        850
+      ],
+      "color": "#345e74",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "02 · MASK ENGINE · AUTO / PREPARED",
+      "bounding": [
+        1180,
+        20,
+        2060,
+        3100
+      ],
+      "color": "#456345",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "10 · FACADE",
+      "bounding": [
+        3260,
+        30,
+        650,
+        1270
+      ],
+      "color": "#3a6264",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 5,
+      "title": "20 · ROAD",
+      "bounding": [
+        3960,
+        30,
+        650,
+        1270
+      ],
+      "color": "#3a6264",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 6,
+      "title": "30 · GREENERY",
+      "bounding": [
+        4660,
+        30,
+        650,
+        1270
+      ],
+      "color": "#3a6264",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 7,
+      "title": "40 · PEOPLE",
+      "bounding": [
+        5360,
+        30,
+        650,
+        1270
+      ],
+      "color": "#3a6264",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 8,
+      "title": "50 · FINAL CONSISTENCY",
+      "bounding": [
+        6060,
+        30,
+        600,
+        320
+      ],
+      "color": "#74643b",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 9,
+      "title": "60 · UPSCALE",
+      "bounding": [
+        6060,
+        440,
+        600,
+        990
+      ],
+      "color": "#345e74",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 10,
+      "title": "61 · POST UPSCALE QC",
+      "bounding": [
+        6760,
+        30,
+        620,
+        320
+      ],
+      "color": "#74643b",
+      "font_size": 28,
+      "flags": {}
+    },
+    {
+      "id": 11,
+      "title": "70 · INSPECTOR / ACCEPTED EXPORT",
+      "bounding": [
+        6760,
+        440,
+        840,
+        1920
+      ],
+      "color": "#51436b",
+      "font_size": 28,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.42,
+      "offset": [
+        50,
+        70
+      ]
+    },
+    "archviz_version": "VARIANT_02",
+    "contract": "Projectless UI; internal workspace = workflow namespace + ORIGINAL hash; sequential stage references FACADE→ROAD→GREENERY→PEOPLE; pass-aware lazy masks; AUTO EMPTY passthrough; generation baseline unchanged",
+    "archviz_workspace_id": "avp_v02_8f4a2d0c6b71477f9a2e5c913a64e182"
+  },
+  "version": 0.4
+}
