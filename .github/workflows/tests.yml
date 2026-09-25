@@ -13,4 +13,17 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
+      - run: pip install pillow
       - run: pytest -q
+      - name: Validate ARCHVIZ Production Variant 02
+        run: python comfyui/ARCHVIZ_Production_VARIANT_02/self_test_variant_02.py
+      - name: Package ARCHVIZ Production Variant 02
+        run: |
+          cd comfyui
+          zip -r ARCHVIZ_Production_VARIANT_02.zip ARCHVIZ_Production_VARIANT_02
+      - name: Upload Variant 02 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARCHVIZ_Production_VARIANT_02
+          path: comfyui/ARCHVIZ_Production_VARIANT_02.zip
+          if-no-files-found: error
