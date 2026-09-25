@@ -84,6 +84,7 @@ req("out['blocked'] = False" in src,'working RUN does not explicitly stay unbloc
 req("finalize_pipeline" in src,'single final review gate missing')
 req("Sequential working image" in src,'sequential runtime notice missing')
 req("packet['blocked'] = True" not in src,'legacy per-stage blocking still present')
+req(src.count("manifest.get('parent_state_id') != state['state_id']") >= 2,'strict CACHE lineage checks missing')
 
 # Contract matrix for user-facing combinations. This is a deterministic execution
 # contract check; real GPU generation remains a separate TESTED gate.
@@ -139,4 +140,4 @@ with tempfile.TemporaryDirectory() as td:
     req((lab/'custom_nodes'/'archviz_production'/'__init__.py').is_file(),'custom node not installed')
     req((shared/'archviz_demo_v02_original.png').is_file(),'shared input demo missing')
 
-print(json.dumps({'status':'PASS','variant':'VARIANT_02','workflow_nodes':len(wf['nodes']),'workflow_links':len(wf['links']),'manual_project_id_removed':True,'auto_workspace':'workflow namespace + ORIGINAL hash','execute_from_current_head':'PASS_STATIC','runtime_architecture':'HANSEN_SEQUENTIAL_WORKING','sequential_stage_images':'PASS_STATIC','combination_matrix':'PASS_STATIC','sam3_mask_reference_1024':'PASS_STATIC','vram_barriers':'PASS_STATIC','final_single_review_gate':'PASS_STATIC','final_image_comparer':'PASS_STATIC','link_symmetry':'PASS','auto_empty_passthrough':'PASS','prepared_empty_strict':'PASS','generation_baseline_preserved':'PASS','installer_simulation':'PASS','workflow_sha256':sha(WF),'runtime_gpu_tested':False},indent=2))
+print(json.dumps({'status':'PASS','variant':'VARIANT_02','workflow_nodes':len(wf['nodes']),'workflow_links':len(wf['links']),'manual_project_id_removed':True,'auto_workspace':'workflow namespace + ORIGINAL hash','execute_from_current_head':'PASS_STATIC','runtime_architecture':'HANSEN_SEQUENTIAL_WORKING','sequential_stage_images':'PASS_STATIC','combination_matrix':'PASS_STATIC','sam3_mask_reference_1024':'PASS_STATIC','vram_barriers':'PASS_STATIC','final_single_review_gate':'PASS_STATIC','final_image_comparer':'PASS_STATIC','cache_lineage':'PASS_STATIC','link_symmetry':'PASS','auto_empty_passthrough':'PASS','prepared_empty_strict':'PASS','generation_baseline_preserved':'PASS','installer_simulation':'PASS','workflow_sha256':sha(WF),'runtime_gpu_tested':False},indent=2))
