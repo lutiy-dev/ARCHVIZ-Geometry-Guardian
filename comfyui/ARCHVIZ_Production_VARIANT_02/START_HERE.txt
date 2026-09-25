@@ -1,19 +1,37 @@
-ARCHVIZ Production VARIANT 02
+ARCHVIZ Production VARIANT 02 · HANSEN-STYLE SEQUENTIAL
 
-1) Fully close ComfyUI Desktop.
-2) Run RUN_INSTALL_DESKTOP_LAB.cmd
-3) Continue only after SELF_TEST PASS and INSTALL PASS.
-4) Restart ComfyUI Desktop.
-5) Open ARCHVIZ_Production_VARIANT_02.json
+INSTALL / UPDATE
+1) Fully close ComfyUI.
+2) Update branch archviz-production-variant-02 from GitHub.
+3) Run self_test_variant_02.py.
+4) Continue only after SELF_TEST PASS.
+5) Run install_variant_02.py with the correct --lab path for this machine.
+6) Restart ComfyUI and open ARCHVIZ_Production_VARIANT_02.json.
 
-Project ID is removed.
-Workspace isolation is automatic: workflow namespace + ORIGINAL hash.
+RUNTIME
+- One EXECUTE queue may run any combination of FACADE / ROAD / GREENERY / PEOPLE / UPSCALE.
+- Each RUN consumes the actual working image produced by the previous stage.
+- SKIP is passthrough.
+- There is ONE final AWAITING_ACCEPT candidate after the full chain.
+- Review FINAL COMPARE (ORIGINAL ↔ PIPELINE RESULT), then ACCEPT or REJECT once.
 
-First real test:
+MASKS / VRAM
+- SAM3 receives a max-side 1024 semantic reference only.
+- The production image remains full-resolution.
+- AUTO mask is restored to the full production resolution before LocalPass.
+- VRAM is released between SAM3 and SDXL/ESRGAN stages.
+
+FIRST REAL TEST
 action = EXECUTE
 FACADE = RUN
-ROAD = SKIP
-GREENERY = SKIP
+ROAD = RUN
+GREENERY = RUN
 PEOPLE = SKIP
 UPSCALE = SKIP
 Queue.
+
+PASS:
+Facade, Road and Greenery all execute sequentially in one queue and FINAL COMPARE shows the accumulated result.
+
+Project ID is removed.
+Workspace isolation is automatic: workflow namespace + ORIGINAL hash.
