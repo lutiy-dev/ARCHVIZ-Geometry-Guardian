@@ -1,6 +1,13 @@
-import argparse, hashlib, json, shutil, time
-from demo_assets import ensure_assets
+import argparse, hashlib, json, shutil, time, sys
 from pathlib import Path
+
+# ComfyUI Portable uses Python embeddable/isolated mode on Windows, which may not add
+# the script directory to sys.path. Ensure sibling helper modules are importable.
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from demo_assets import ensure_assets
 
 VARIANT = "VARIANT_02"
 WORKFLOW = "ARCHVIZ_Production_VARIANT_02.json"
