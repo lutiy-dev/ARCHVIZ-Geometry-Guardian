@@ -67,20 +67,6 @@ def record(packet, stage, status, **extra):
     return dict(packet, history=[*packet['history'], dict(stage=stage, status=status, **extra)])
 
 
-def routed(packet, stage, result):
-    brief = {k: v for k, v in result.items() if k not in ('image', 'manifest')}
-    packet = record(packet, stage, result['status'], details=brief)
-    packet['image'] = result['image']
-    if result['status'] in ('SKIPPED', 'CACHED'):
-        packet['state_id'] = result['state_id']
-    else:
-        packet['blocked'] = True
-        packet['attempt_id'] = result.get('attempt_id')
-        packet['notice'] = ('Review preview, then set MASTER action=ACCEPT or REJECT and target_id=attempt_id. '
-                            'After ACCEPT use CACHE for this stage. Change run_nonce to explicitly regenerate.')
-    return packet
-
-
 class Master:
     CATEGORY = CATEGORY
     FUNCTION = 'execute'
