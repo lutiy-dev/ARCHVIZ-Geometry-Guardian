@@ -2,6 +2,10 @@
 
 Variant 02 сохраняет один проект без ручного Project ID и перестраивает runtime по логике Paul Hansen: выбранные этапы выполняются последовательно в одном рабочем проходе, а ручной review-gate остаётся один — в конце всей цепочки.
 
+## Workflow overview
+
+![ARCHVIZ Production Variant 02 — workflow overview](docs/variant02_workflow_overview.jpg)
+
 ## Core architecture
 - Один workflow-файл = один внутренний namespace.
 - Workspace изолируется автоматически: `workflow namespace + ORIGINAL image hash`.
