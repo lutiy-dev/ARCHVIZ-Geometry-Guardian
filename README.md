@@ -1,7 +1,7 @@
 # ARCHVIZ Geometry Guardian
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lutiy-dev/ARCHVIZ-Geometry-Guardian/archviz-production-variant-02/comfyui/ARCHVIZ_Production_VARIANT_02/docs/variant02_workflow_overview.jpg" alt="ARCHVIZ Production Variant 02 workflow" width="100%">
+  <img src="https://raw.githubusercontent.com/lutiy-dev/lutiy-dev/main/assets/variant02_workflow_preview.jpg" alt="ARCHVIZ Production Variant 02 workflow preview" width="100%">
 </p>
 
 **Architecture-preservation QC for AI-assisted architectural visualization.**
